@@ -1,7 +1,6 @@
-# SPDX-FileCopyrightText: 2019 Mikey Sklar for Adafruit Industries
-#
-# SPDX-License-Identifier: MIT
 
+
+# import needed modules
 import time
 import board
 import digitalio
@@ -53,9 +52,14 @@ def setStep(w1, w2, w3, w4):
     coil_B_1_pin.value = w3
     coil_B_2_pin.value = w4
 
+    
 while True:
-    user_delay = input("Delay between steps (milliseconds)?")
-    user_steps = input("How many steps forward? ")
-    forward(int(user_delay) / 1000.0, int(user_steps))
-    user_steps = input("How many steps backwards? ")
-    backwards(int(user_delay) / 1000.0, int(user_steps))
+    try:
+        user_delay = input("Delay between steps (milliseconds)?")
+        user_steps = input("How many steps forward? ")
+        forward(int(user_delay) / 1000.0, int(user_steps))
+        user_steps = input("How many steps backwards? ")
+        backwards(int(user_delay) / 1000.0, int(user_steps))
+    except KeyboardInterrupt:
+        setStep(0, 0, 0, 0) # turn off electromagnets to reduce power consumption
+        quit()
