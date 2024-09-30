@@ -2,55 +2,63 @@
 # @file     my_dht_11_lcd.py
 # @desc     a first attempt at making a smart RASPI system 
 
+
+import sys
 import time
-import adafruit_dht
-import board
 
 
-dht_device1 = adafruit_dht.DHT11(board.D21, use_pulseio=False)
-dht_device2 = adafruit_dht.DHT22(board.D20, use_pulseio=False)
+# import user created modules
+from sensors import dht
 
 
-dht_device_list = [dht_device1, dht_device2]
-
-
-import I2C_LCD_driver
-mylcd = I2C_LCD_driver.lcd()
-mylcd.lcd_clear()
-mylcd.backlight(1)
+# main loop of program
+def main():
+    while True:
+        dht.update_all_dht()
+        time.sleep(5)
 
 
 
-    # update temperature and humidity
-while True:
-    num = 0
-    for dht_device in dht_device_list:
-        try:
-            temperature_c = dht_device.temperature
-            temperature_f = temperature_c * (9 / 5) + 32            
-            humidity = dht_device.humidity
-        except RuntimeError as err:
-            temperature_c = 0
-            temperature_f = 0
-            humidity = 0
-            
-        # perform data conversion
-        #temperature_f = round(temperature_f, 2)
-            
-        print(f"TEMP C: {temperature_c}")
-        print(f"TEMP F: {temperature_f}")
-        print(f"HUM   : {humidity}")
-        print("\n")
-        
-        # print out on LCD
-        mylcd.lcd_clear()
-        mylcd.lcd_display_string(f"TMP {temperature_f:.1f}F {temperature_c:.1f}C", 1)
-        mylcd.lcd_display_string(f"HUM: {humidity:.1f}%  #{num}", 2)
-        
-        # add some delay
-        time.sleep(4)
-        num += 1
-            
-    
-            
-            
+
+
+
+
+
+
+
+def db_init():
+    """Create the database using the values of TableStatements."""
+    from db import DATABASE_DIRECTORY, TableStatements, all_tables_init, populate_tables
+
+    print("NOTICE: you are currently using ...")
+    print(f"\t\t {DATABASE_DIRECTORY}")
+    print("... as your database directory!!!\n")
+
+    # append every single variable string in class
+    statements = []
+    for value in TableStatements.__dict__.values():
+        if str(value).startswith(
+            "CREATE"
+        ):  # Only append the values of the variables. Without this we would get the built-ins and the docstring.
+            statements.append(value)
+
+    # execute init sequence
+    db_status = all_tables_init(statements, DATABASE_DIRECTORY)
+    if not db_status:
+        print("I don't think database file was able to be located!!!")
+        return False
+
+    #populate_tables(DATABASE_DIRECTORY)
+    return True
+
+
+
+# thing that's gotta be here
+if __name__ == "__main__":
+    status = db_init()  # only used if database doesn't exist
+    if not status:
+        print("Something went wrong with database. EXITING!")
+        sys.exit()
+
+    main()
+
