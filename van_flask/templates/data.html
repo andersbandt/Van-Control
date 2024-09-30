@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temperature and Humidity Data</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/stylesheet.css">
+  </head>
+  <body>
+    <h1>Temperature and Humidity Data</h1>
+    <table border="1">
+      <tr>
+	<th>Sensor ID</th>
+	<th>Timestamp</th>
+	<th>Temperature (°C)</th>
+	<th>Temperature (°F)</th>
+	<th>Humidity (%)</th>
+      </tr>
+      {% for row in data %}
+      <tr>
+	<td>{{ row[0] }}</td>
+	<td>{{ row[3] }}</td>
+	<td>{{ row[1] }}</td>
+	<td>{{ row[1]*1.8 + 32}}</td>
+	<td>{{ row[2] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>

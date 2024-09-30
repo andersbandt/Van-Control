@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Hidden Hydroponics Home</title>
+  <link rel="stylesheet" type="text/css" href="/static/css/stylesheet.css">
+
+
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+    <script type="text/javascript"> 
+    	$(function() { $("#mybutton").click(function (event) { 
+    		$.getJSON('/firstFunction', { }, function(data) { }); 
+    		return false;
+    	}); 
+    }); 
+    </script> 
+
+
+</head>
+<body>
+
+<h1>Van Life Control Home</h1>
+
+
+<div id="cssmenu">
+  <ul id="navbar">
+    <li><a href="index.html">Home</a>
+    </li>
+    <li><a href="automate.html">Configure Automation</a>
+    </li>
+    <li><a href="data.html">Data Management</a>
+    </li>
+    <li><a href="control.html">Manual Control</a>
+  </ul>
+</div>
+
+ <div class="measurements">
+
+ 	<div class="sensor" id="pH">
+ 		<p>pH: </p>
+ 	</div>
+
+ 	<div class="sensor" id="EC">
+ 		<p>EC: </p>
+ 	</div>
+
+ 	<div class="sensor" id="TDS">
+ 		<p>TDS: </p>
+ 	</div>
+ </div>
+
+
+ <form action="/pump/" method="POST">
+ 	<button id="mybutton" type="submit">Pump On</button>
+</form>
+
+
+</body>
+</html>
