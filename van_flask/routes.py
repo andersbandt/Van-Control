@@ -7,10 +7,10 @@ from flask import session
 from flask import abort
 from flask.blueprints import Blueprint
 
-import van_flask.data_helper as datah
-
+import db.helpers as dbh
 
 blueprint = Blueprint('routes', __name__, static_folder='static', template_folder='/templates')
+
 
 # site navigation stuff
 @blueprint.route('/')
@@ -22,13 +22,43 @@ def index_return():
 	return home()
 
 @blueprint.route('/data.html')
-def data():
+def data_fetch():
+        max_limit = 100
         # Get the data from the database
-        data = datah.get_data()
+        raw_data = dbh.sensors.get_data(0, max_limit)
+        labels = [row[2] for row in raw_data]
+        temp1 = [row[0] for row in raw_data]
+#        humidity1 = [row[1] for row in raw_data]
+
+        raw_data = dbh.sensors.get_data(1, max_limit)
+        temp2 = [row[0] for row in raw_data]
+
+        raw_data = dbh.sensors.get_data(2, max_limit)
+        temp3 = [row[0] for row in raw_data]
 
         # Pass the data to the template
-        return render_template('data.html', data=data)
+        return render_template('data.html',
+                               labels=labels,
+                               data1=temp1,
+                               data2=temp2,
+                               data3=temp3)
 
+
+# @blueprint.route('/chart-data')
+# def chart_data():
+#         # Get the data from the database
+#         def generate_random_data():
+#                 while True:
+#                         json_data = json.dumps(
+#                                 {'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'value': random.random() * 100})
+#                         yield f"data:{json_data}\n\n"
+#                         time.sleep(1)
+
+#         response = Response(stream_with_context(generate_random_data()), mimetype="text/event-stream")
+#         response.headers["Cache-Control"] = "no-cache"
+#         response.headers["X-Accel-Buffering"] = "no"
+#         return response
+        
 
 @blueprint.route('/automate.html')
 def automate():

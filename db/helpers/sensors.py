@@ -28,6 +28,18 @@ def insert_reading(sensor_event: SensorEvent) -> bool:
 
 
 
+# Function to query the database
+def get_data(sensor_id, limit):
+    with sqlite3.connect(DATABASE_DIRECTORY) as conn:
+        cur = conn.cursor()
+
+        # Query to get the latest temperature and humidity data
+        cur.execute("SELECT temperature, humidity, timestamp FROM sensor_data WHERE sensor_id=? ORDER BY timestamp DESC LIMIT ?",(sensor_id, limit))
+        
+        results = cur.fetchall()
+        return results
+
+
 
 
 
