@@ -23,25 +23,32 @@ def index_return():
 
 @blueprint.route('/data.html')
 def data_fetch():
-        max_limit = 100
         # Get the data from the database
+        max_limit = 1000
         raw_data = dbh.sensors.get_data(0, max_limit)
+
+        # assign data to variables
         labels = [row[2] for row in raw_data]
         temp1 = [row[0] for row in raw_data]
-#        humidity1 = [row[1] for row in raw_data]
+        humidity1 = [row[1] for row in raw_data]
 
         raw_data = dbh.sensors.get_data(1, max_limit)
         temp2 = [row[0] for row in raw_data]
+        humidity2 = [row[1] for row in raw_data]
 
         raw_data = dbh.sensors.get_data(2, max_limit)
         temp3 = [row[0] for row in raw_data]
+        humidity3 = [row[1] for row in raw_data]
 
         # Pass the data to the template
         return render_template('data.html',
                                labels=labels,
-                               data1=temp1,
-                               data2=temp2,
-                               data3=temp3)
+                               data1_1=temp1,
+                               data1_2=temp2,
+                               data1_3=temp3,
+                               data2_1=humidity1,
+                               data2_2=humidity2,
+                               data2_3=humidity3)
 
 
 # @blueprint.route('/chart-data')

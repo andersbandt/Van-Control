@@ -15,7 +15,7 @@ from sensors import dht
 def main():
     while True:
         dht.update_all_dht()
-        time.sleep(5)
+        time.sleep(20)
 
 
 
