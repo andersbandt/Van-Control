@@ -9,7 +9,7 @@ from classes.SensorEvent import SensorEvent
 import db.helpers as dbh
 
 
-dht_device1 = adafruit_dht.DHT11(board.D13, use_pulseio=False)
+dht_device1 = adafruit_dht.DHT22(board.D13, use_pulseio=False)
 dht_device2 = adafruit_dht.DHT11(board.D19, use_pulseio=False)
 dht_device3 = adafruit_dht.DHT22(board.D26, use_pulseio=False)
 

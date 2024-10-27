@@ -1,0 +1,17 @@
+
+
+
+## to do items
+
+
+1. add slider to temperature page to adjust time duration.
+   - like 1 day behind? 6 hours behind? 3 days behind?
+
+
+
+
+2. random long term thinking
+   - add some "export data from time period" option
+   - testware for my van build!!!!
+
+
