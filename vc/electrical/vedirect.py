@@ -25,13 +25,21 @@ class Vedirect:
     vid = 0x10C4
     pid = 0xEA60
 
-    def __init__(self, port=None, timeout=5):
+    def __init__(self, port=None, timeout=3):
+        # establish port
         if port is None:
             self.serialport = autoconnect_serial(self.vid, self.pid)
         else:
             self.serialport = port
 
-        self.ser = serial.Serial(self.serialport, 19200, timeout=timeout)
+        # connect to serial port
+        if self.serialport is not None:
+            self.ser = serial.Serial(self.serialport, 19200, timeout=timeout)
+            print(f"VE.Direct connected at port {self.serialport} with a timeout of {timeout}\n")
+        else:
+            return False
+
+        # setup various other things
         self.header1 = ord('\r')
         self.header2 = ord('\n')
         self.hexmarker = ord(':')
@@ -95,31 +103,31 @@ class Vedirect:
 
     # read_data_single: returns a single dict with a reading sample
     def read_data_single(self):
-        while True:
-            data = self.ser.read()
-            for single_byte in data:
-                packet = self.input(single_byte)
-                if packet is not None:
-                    return packet
+        data = self.ser.read()
+        for single_byte in data:
+            packet = self.input(single_byte)
+            if packet is not None:
+                return packet
 
+    ## read_data_callback: performs `callback` on the read sample
     def read_data_callback(self, callback):
-        while True:
-            data = self.ser.read()
-            for byte in data:
-                packet = self.input(byte)
-                if packet is not None:
-                    callback(packet)
+        data = self.ser.read()
+        for byte in data:
+            packet = self.input(byte)
+            if packet is not None:
+                callback(packet)
 
     def save_data_single(self):
         packet = self.read_data_single()
-        timestamp = datetime.datetime.now()
 
-        for label in packet:
-            dbh.battery.insert_reading(
-                label,
-                packet[label],
-                timestamp
-            )
-        print("... BMV-712 packet saved")
+        if packet is not None:
+            timestamp = datetime.datetime.now()
+            for label in packet:
+                dbh.battery.insert_reading(
+                    label,
+                    packet[label],
+                    timestamp
+                )
+            print("... BMV-712 packet saved")
 
 

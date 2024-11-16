@@ -10,11 +10,9 @@ from vc.sensors import dht
 from vc.electrical.vedirect import Vedirect
 
 
-
-
 # main loop of program
 def main():
-    ve = Vedirect(port=None, timeout=3)
+    ve = Vedirect(port=None, timeout=2)  # TODO: this only gets one chance to be setup... what about case where I connect/disconnect my serial converter?
     while True:
         dht.update_all_dht()
         ve.save_data_single()
