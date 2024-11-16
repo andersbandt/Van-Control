@@ -1,4 +1,4 @@
-import van_flask.app as grow_flask
+import vf.app as grow_flask
 
 
 app = grow_flask.createApp()

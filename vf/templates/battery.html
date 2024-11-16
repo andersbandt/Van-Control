@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+        <title>Van: Battery Management</title>
+        <meta charset="utf-8">
+      <link rel="stylesheet" type="text/css" href="/static/css/stylesheet.css">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+      
+
+<body>
+      <h1>Van Control</h1>
+    <!-- NAVBAR (include via Jinja) -->
+    {% include 'asset_navbar.html' %}
+
+    <div class="container mt-4">
+        <h2>Battery Information</h2>
+        <div class="row mt-5">
+            <div class="col-md-6 offset-md-3">
+                <div class="card">
+                    <div class="card-header text-center">
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Voltage:</strong> {{ voltage }} V</p>
+                        <p><strong>Current:</strong> {{ current }} A</p>
+                        <p><strong>Power Consumption:</strong> {{ power }} W</p>
+                        <p><strong>State of Charge:</strong> {{ state_of_charge }}%</p>
+                        <br>
+                        <p><strong>Last updated:</strong> {{ timestamp }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

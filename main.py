@@ -1,4 +1,3 @@
-
 # @file     my_dht_11_lcd.py
 # @desc     a first attempt at making a smart RASPI system 
 
@@ -6,17 +5,20 @@
 import sys
 import time
 
-
 # import user created modules
-from sensors import dht
+from vc.sensors import dht
+from vc.electrical.vedirect import Vedirect
+
+
 
 
 # main loop of program
 def main():
+    ve = Vedirect(port=None, timeout=3)
     while True:
         dht.update_all_dht()
-        time.sleep(20)
-
+        ve.save_data_single()
+        time.sleep(15)
 
 
 def db_init():
@@ -31,7 +33,7 @@ def db_init():
     statements = []
     for value in TableStatements.__dict__.values():
         if str(value).startswith(
-            "CREATE"
+                "CREATE"
         ):  # Only append the values of the variables. Without this we would get the built-ins and the docstring.
             statements.append(value)
 
@@ -41,9 +43,8 @@ def db_init():
         print("I don't think database file was able to be located!!!")
         return False
 
-    #populate_tables(DATABASE_DIRECTORY)
+    # return True if we made it this far
     return True
-
 
 
 # thing that's gotta be here
@@ -54,4 +55,3 @@ if __name__ == "__main__":
         sys.exit()
 
     main()
-

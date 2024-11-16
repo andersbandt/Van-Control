@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <title>Van Life Control Home</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="/static/css/stylesheet.css">
+    <link rel="icon" href="favicon.ico"/>
+
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="/static/dropdown.js"></script>
+    
+    <script type="text/javascript"> 
+      $(function() { $("#mybutton").click(function (event) { 
+    	  $.getJSON('/firstFunction', { }, function(data) { }); 
+    	  return false;
+      }); 
+                   }); 
+    </script>
+  </head>
+
+  <body>
+    <h1>Van Life Control Home</h1>
+
+    <!-- NAVBAR (include via Jinja) -->
+    {% include 'asset_navbar.html' %}
+
+    <div class="measurements">
+ 	  <div class="sensor" id="pH">
+ 		<p>pH: </p>
+ 	  </div>
+
+ 	  <div class="sensor" id="EC">
+ 		<p>EC: </p>
+ 	  </div>
+
+ 	  <div class="sensor" id="TDS">
+ 		<p>TDS: </p>
+ 	  </div>
+    </div>
+
+
+    <div class="dropdown">
+      <button class="dropbtn">Dropdown</button> <!-- will eventually want this to change into the activity I am doing -->
+      <div class="dropdown-content">
+        <a id="item1" href="#">School</a>
+        <a href="#">Link 2</a>
+        <a href="#">Link 3</a>
+      </div>
+    </div>
+
+
+    <form action="/pump/" method="POST">
+ 	  <button id="mybutton" type="submit">Pump On</button>
+    </form>
+
+    <!-- FOOTER (include via Jinja) -->
+    {% include 'asset_footer.html' %}
+
+
+  </body>
+</html>

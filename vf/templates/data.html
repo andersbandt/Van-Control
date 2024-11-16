@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en"></html>
+      <head>
+        <title>Van Control: Temp and Humidity</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="/static/css/stylesheet.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+        <style>
+          * {
+              margin: 0;
+              padding: 0;
+              font-family: sans-serif;
+          }
+          .chartMenu {
+              width: 100vw;
+              height: 40px;
+              background: #1A1A1A;
+              color: rgba(54, 162, 235, 1);
+          }
+          .chartMenu p {
+              padding: 10px;
+              font-size: 20px;
+          }
+          .chartCard {
+              width: 100vw;
+              height: calc(100vh - 40px);
+              background: rgba(54, 162, 235, 0.2);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+          }
+          .chartBox {
+              width: 700px;
+              padding: 20px;
+              border-radius: 20px;
+              border: solid 3px rgba(54, 162, 235, 1);
+              background: white;
+          }
+        </style>
+      </head>
+
+<body>
+    <h1>Van Control</h1>
+	<!-- NAVBAR (include via Jinja) -->
+	{% include 'asset_navbar.html' %}
+
+
+  <!-- <div class="chartMenu"> -->
+  <!--   <p>WWW.CHARTJS3.COM (Chart JS <span id="chartVersion"></span></p> -->
+  <!--   <div class="chartCard"> -->
+  <!--     <div class="chartBox"> -->
+  <!--       <canvas id="line-chart1"></canvas> -->
+  <!--     </div> -->
+  <!--   </div> -->
+  <!-- </div> -->
+
+  <canvas id="line-chart1"></canvas>
+  <canvas id="line-chart2"></canvas>
+
+  <script>
+    const labels = {{ labels|tojson }};
+    const data1_1 = {{ data1_1|tojson }};
+    const data1_2 = {{ data1_2|tojson }};
+    const data1_3 = {{ data1_3|tojson }};
+    const data2_1 = {{ data2_1|tojson }};
+    const data2_2 = {{ data2_2|tojson }};
+    const data2_3 = {{ data2_3|tojson }};
+
+
+    new Chart(document.getElementById("line-chart1"), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+	            { 
+                    data: data1_1,
+                    label: "Temperature 1",
+                    borderColor: "#3e95cd",
+                    fill: false
+                },
+	            {
+	                data: data1_2,
+                    label: "Temperature 2",
+                    borderColor: "#c45850",
+                    fill: false
+	            },
+	            {
+	                data: data1_3,
+                    label: "Temperature 3",
+                    borderColor: "#8fed9c",
+                    fill: false
+                }
+            ]
+        },
+        options: {
+	        responsive: true,
+	        title: {
+	            display: true,
+	            text: 'Temperature data from control center'
+	        },
+            scales: {
+                xAxes: [{
+                    ticks: {
+                        maxTicksLimit: 20
+                    }
+                }]
+            }
+        }
+    });
+    // END - CHART
+
+    // START - CHART
+    new Chart(document.getElementById("line-chart2"), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+	            { 
+                    data: data2_1,
+                    label: "Humidity 1",
+                    borderColor: "#381ecf",
+                    fill: false
+                },
+	            {
+	                data: data2_2,
+                    label: "Humidity 2",
+                    borderColor: "#c23f23",
+                    fill: false
+	            },
+	            {
+	                data: data2_3,
+                    label: "Humidity 3",
+                    borderColor: "#15d363",
+                    fill: false
+                }
+            ]
+        },
+        options: {
+	        responsive: true,
+	        title: {
+	            display: true,
+	            text: 'Humidity data from control center'
+	        },
+            scales: {
+                xAxes: [{
+                    ticks: {
+                        maxTicksLimit: 20
+                    }
+                }]
+            }
+        }
+    });
+    // END - CHART
+
+  </script>
+
+</body>
+</html>
+

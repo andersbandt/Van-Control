@@ -1,4 +1,3 @@
-
 # @file db/__init__/.py
 # @desc table initializer for my SQLite3 tables. Base code inherited from Financial-Analyzer project
 
@@ -10,10 +9,10 @@ import sqlite3
 DATABASE_DIRECTORY = "db/financials.db"
 
 
-"""
-A class for holding the SQL statements.
-"""
 class TableStatements:
+    """
+    A class for holding the SQL statements.
+    """
     # Temperature and Humidity Table
     sensor_data = """CREATE TABLE IF NOT EXISTS sensor_data (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,16 +25,8 @@ class TableStatements:
     # Battery Data Table (BMV-712)
     battery_data = """CREATE TABLE IF NOT EXISTS battery_data (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        voltage REAL,             -- Battery voltage
-                        current REAL,             -- Battery current
-                        state_of_charge REAL,              -- State of charge in percentage (optional)
-                        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-                    );"""
-
-    # Diesel Heater Runtime Table
-    runtime = """CREATE TABLE IF NOT EXISTS runtime (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        status TEXT CHECK(status IN ('on', 'off')) NOT NULL, -- Status: on or off
+                        label VARCHAR(10),
+                        value REAL,
                         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
                     );"""
 
@@ -45,6 +36,8 @@ Create all the tables. It uses a list instead
 of importing the TableStatements class for
 dependency injection reasons.
 """
+
+
 def all_tables_init(statements: list, database_directory: str) -> bool:
     print("Initializing all tables in database .db file!!! Exciting!!!")
     try:
@@ -89,5 +82,3 @@ def populate_tables(database_directory: str):
             except sqlite3.IntegrityError as e:
                 print(e)
         conn.set_trace_callback(None)
-
-

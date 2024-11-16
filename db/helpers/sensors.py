@@ -8,7 +8,7 @@ import datetime
 from db import DATABASE_DIRECTORY
 
 # import user created modules
-from classes.SensorEvent import SensorEvent
+from vc.classes.SensorEvent import SensorEvent
 
 
 def insert_reading(sensor_event: SensorEvent) -> bool:
@@ -25,8 +25,6 @@ def insert_reading(sensor_event: SensorEvent) -> bool:
         )
         conn.set_trace_callback(None)
     return True
-
-
 
 # Function to query the database
 def get_data(sensor_id, limit):
