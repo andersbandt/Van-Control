@@ -1,160 +1,216 @@
 <!DOCTYPE html>
-<html lang="en"></html>
-      <head>
-        <title>Van Control: Temp and Humidity</title>
-        <meta charset="utf-8">
-        <link rel="stylesheet" type="text/css" href="/static/css/stylesheet.css">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
-        <style>
-          * {
-              margin: 0;
-              padding: 0;
-              font-family: sans-serif;
-          }
-          .chartMenu {
-              width: 100vw;
-              height: 40px;
-              background: #1A1A1A;
-              color: rgba(54, 162, 235, 1);
-          }
-          .chartMenu p {
-              padding: 10px;
-              font-size: 20px;
-          }
-          .chartCard {
-              width: 100vw;
-              height: calc(100vh - 40px);
-              background: rgba(54, 162, 235, 0.2);
-              display: flex;
-              align-items: center;
-              justify-content: center;
-          }
-          .chartBox {
-              width: 700px;
-              padding: 20px;
-              border-radius: 20px;
-              border: solid 3px rgba(54, 162, 235, 1);
-              background: white;
-          }
-        </style>
-      </head>
+<html lang="en">
+
+<head>
+  <title>Van Control: Temp and Humidity</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="/static/css/stylesheet.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+    }
+
+    .chartMenu {
+      width: 100vw;
+      background: #1A1A1A;
+      color: rgba(54, 162, 235, 1);
+      margin-bottom: 20px;
+      /* Add space between charts */
+    }
+
+    .chartMenu p {
+      padding: 10px;
+      font-size: 20px;
+    }
+
+    .chartCard {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      background: rgba(54, 162, 235, 0.2);
+      padding: 20px 0;
+      /* Added padding for space inside the container */
+    }
+
+    .chartBox {
+      width: 700px;
+      padding: 20px;
+      border-radius: 20px;
+      border: solid 3px rgba(54, 162, 235, 1);
+      background: white;
+    }
+  </style>
+</head>
+
 
 <body>
-    <h1>Van Control</h1>
-	<!-- NAVBAR (include via Jinja) -->
-	{% include 'asset_navbar.html' %}
+  <h1>Van Control</h1>
+  <!-- NAVBAR (include via Jinja) -->
+  {% include 'asset_navbar.html' %}
 
 
-  <!-- <div class="chartMenu"> -->
-  <!--   <p>WWW.CHARTJS3.COM (Chart JS <span id="chartVersion"></span></p> -->
-  <!--   <div class="chartCard"> -->
-  <!--     <div class="chartBox"> -->
-  <!--       <canvas id="line-chart1"></canvas> -->
-  <!--     </div> -->
-  <!--   </div> -->
-  <!-- </div> -->
+  <!-- Slider to control max_limit -->
+  <label for="data-slider">Select Max Limit: <span id="slider-value">{{ max_limit }}</span></label>
+  <input type="range" id="data-slider" min="100" max="10000" value="{{ max_limit }}" step="10">
 
-  <canvas id="line-chart1"></canvas>
-  <canvas id="line-chart2"></canvas>
+
+  <div class="chartMenu">
+    <div class="chartCard">
+      <div class="chartBox">
+        <canvas id="line-chart1"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="chartMenu">
+    <div class="chartCard">
+      <div class="chartBox">
+        <canvas id="line-chart2"></canvas>
+      </div>
+    </div>
+  </div>
 
   <script>
-    const labels = {{ labels|tojson }};
-    const data1_1 = {{ data1_1|tojson }};
-    const data1_2 = {{ data1_2|tojson }};
-    const data1_3 = {{ data1_3|tojson }};
-    const data2_1 = {{ data2_1|tojson }};
-    const data2_2 = {{ data2_2|tojson }};
-    const data2_3 = {{ data2_3|tojson }};
+    const labels = {{ labels| tojson }};
+    const data1_1 = {{ data1_1| tojson }};
+    const data1_2 = {{ data1_2| tojson }};
+    const data1_3 = {{ data1_3| tojson }};
+    const data2_1 = {{ data2_1| tojson }};
+    const data2_2 = {{ data2_2| tojson }};
+    const data2_3 = {{ data2_3| tojson }};
 
-
-    new Chart(document.getElementById("line-chart1"), {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [
-	            { 
-                    data: data1_1,
-                    label: "Temperature 1",
-                    borderColor: "#3e95cd",
-                    fill: false
-                },
-	            {
-	                data: data1_2,
-                    label: "Temperature 2",
-                    borderColor: "#c45850",
-                    fill: false
-	            },
-	            {
-	                data: data1_3,
-                    label: "Temperature 3",
-                    borderColor: "#8fed9c",
-                    fill: false
-                }
-            ]
+    // START - CHART
+    const chart1 = new Chart(document.getElementById("line-chart1"), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            data: data1_1,
+            label: "Temperature 1",
+            borderColor: "#3e95cd",
+            fill: false
+          },
+          {
+            data: data1_2,
+            label: "Temperature 2",
+            borderColor: "#c45850",
+            fill: false
+          },
+          {
+            data: data1_3,
+            label: "Temperature 3",
+            borderColor: "#8fed9c",
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        title: {
+          display: true,
+          text: 'Temperature data from control center'
         },
-        options: {
-	        responsive: true,
-	        title: {
-	            display: true,
-	            text: 'Temperature data from control center'
-	        },
-            scales: {
-                xAxes: [{
-                    ticks: {
-                        maxTicksLimit: 20
-                    }
-                }]
+        scales: {
+          xAxes: [{
+            ticks: {
+              maxTicksLimit: 20
             }
+          }]
         }
+      }
     });
     // END - CHART
 
     // START - CHART
-    new Chart(document.getElementById("line-chart2"), {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [
-	            { 
-                    data: data2_1,
-                    label: "Humidity 1",
-                    borderColor: "#381ecf",
-                    fill: false
-                },
-	            {
-	                data: data2_2,
-                    label: "Humidity 2",
-                    borderColor: "#c23f23",
-                    fill: false
-	            },
-	            {
-	                data: data2_3,
-                    label: "Humidity 3",
-                    borderColor: "#15d363",
-                    fill: false
-                }
-            ]
+    const chart2 = new Chart(document.getElementById("line-chart2"), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            data: data2_1,
+            label: "Humidity 1",
+            borderColor: "#381ecf",
+            fill: false
+          },
+          {
+            data: data2_2,
+            label: "Humidity 2",
+            borderColor: "#c23f23",
+            fill: false
+          },
+          {
+            data: data2_3,
+            label: "Humidity 3",
+            borderColor: "#15d363",
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Temperature data from control center'
+          }
         },
-        options: {
-	        responsive: true,
-	        title: {
-	            display: true,
-	            text: 'Humidity data from control center'
-	        },
-            scales: {
-                xAxes: [{
-                    ticks: {
-                        maxTicksLimit: 20
-                    }
-                }]
+        scales: {
+          x: {
+            ticks: {
+              maxTicksLimit: 20
             }
+          }
         }
+      }
     });
     // END - CHART
 
   </script>
 
-</body>
-</html>
 
+  <script>
+    // Get references to the slider and the label
+    const slider = document.getElementById('data-slider');
+    const sliderValue = document.getElementById('slider-value');
+    const dataContainer = document.getElementById('data-container');
+
+    // Update the value display when the slider changes
+    slider.addEventListener('input', function () {
+      sliderValue.textContent = slider.value;
+    });
+
+    // Fetch new data when the slider stops being dragged
+    slider.addEventListener('change', function () {
+      const maxLimit = slider.value;
+      fetch(`/data.html?max_limit=${maxLimit}`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      })
+        .then(response => response.json())
+        .then(data => {
+          // Assuming the server returns the new labels and data arrays
+          chart1.data.labels = data.labels;
+          chart1.data.datasets[0].data = data.data1_1;
+          chart1.data.datasets[1].data = data.data1_2;
+          chart1.data.datasets[2].data = data.data1_3;
+          chart1.update();
+
+          chart2.data.labels = data.labels;
+          chart2.data.datasets[0].data = data.data2_1;
+          chart2.data.datasets[1].data = data.data2_2;
+          chart2.data.datasets[2].data = data.data2_3;
+          chart2.update();
+        })
+        .catch(err => console.error('Error fetching data:', err));
+    });
+
+  </script>
+
+</body>
+
+</html>

@@ -1,9 +1,11 @@
+
 # import needed modules
 from flask import Flask
 from flask import flash
 from flask import redirect
 from flask import render_template
 from flask import request
+from flask import jsonify
 from flask import session
 from flask import abort
 from flask.blueprints import Blueprint
@@ -34,7 +36,8 @@ def automate():
 @blueprint.route('/data.html')
 def data_fetch():
     # Get the data from the database
-    max_limit = 1000
+    max_limit = request.args.get('max_limit', 5000, type=int)
+
     raw_data = dbh.sensors.get_data(0, max_limit)
 
     # assign data to variables
@@ -50,7 +53,19 @@ def data_fetch():
     temp3 = [row[0] for row in raw_data]
     humidity3 = [row[1] for row in raw_data]
 
-    # Pass the data to the template
+    # If the request is an AJAX call, return JSON
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({
+            'labels': labels,
+            'data1_1': temp1,
+            'data1_2': temp2,
+            'data1_3': temp3,
+            'data2_1': humidity1,
+            'data2_2': humidity2,
+            'data2_3': humidity3,
+        })
+
+    # Otherwise, return the HTML page with data rendered in Jinja
     return render_template('data.html',
                            labels=labels,
                            data1_1=temp1,
