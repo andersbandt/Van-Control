@@ -1,73 +1,99 @@
 
 # import needed modules
 from datetime import datetime
+from bisect import bisect_left, bisect_right, bisect
 
 
 # import user created modules
 import db.helpers as dbh
 
+"""
+Aligns the data from multiple sensors to the primary sensor's timestamps.
 
+Args:
+    primary (int): Index of the primary sensor in the data list.
+    data (list): List of sensor data dictionaries where each dictionary contains:
+                 - 'timestamp': List of timestamps
+                 - 'temperature': List of temperatures
 
-
+Returns:
+    list: A list of aligned data where each row contains the primary timestamp and 
+          temperatures from all sensors, aligned to the primary timestamps.
+"""
 def align_data(primary, data):
-    """
-    Aligns the data from multiple sensors to the primary sensor's timestamps.
-    
-    Args:
-        primary (int): Index of the primary sensor in the data list.
-        data (list): List of sensor data dictionaries where each dictionary contains:
-                     - 'timestamp': List of timestamps
-                     - 'temperature': List of temperatures
-    
-    Returns:
-        list: A list of aligned data where each row contains the primary timestamp and 
-              temperatures from all sensors, aligned to the primary timestamps.
-    """
+    print("\nAligning data ...")
     primary_timestamps = data[primary]["timestamp"]
 
-    def nearest(primary_ts, secondary_timestamps):
-        """
-        Finds the sample in secondary_timestamps that is closest to the given primary_ts.
-        """
-        # Convert secondary timestamps to datetime and calculate the minimum time difference
-        primary_ts = datetime.strptime(primary_ts, "%Y-%m-%d %H:%M:%S.%f")
-        secondary_timestamps_dt = [datetime.strptime(ts, "%Y-%m-%d %H:%M:%S.%f") for ts in secondary_timestamps]
-        closest_ts = min(secondary_timestamps_dt, key=lambda ts: abs(ts - primary_ts))
-        closest_ts = datetime.strftime(closest_ts, "%Y-%m-%d %H:%M:%S.%f")
-        return closest_ts
+    
+    def nearest(pts_dt, s_timestamps_dt):
+        s_timestamps_dt = sorted(s_timestamps_dt)
+        
+        # Use binary search to find the insertion point
+        idx = bisect_left(s_timestamps_dt, pts_dt)
+                
+        # Handle edge cases where pts_dt is out of the range of s_timestamps_dt
+        if idx == 0:
+            closest = s_timestamps_dt[0]
+        elif idx == len(s_timestamps_dt):
+            closest = s_timestamps_dt[-1]
+        else:
+            # Compare two neighbors to find the closest
+            before = s_timestamps_dt[idx - 1]
+            after = s_timestamps_dt[idx]
+            closest = before if abs(before - pts_dt) <= abs(after - pts_dt) else after
+
+        return datetime.strftime(closest, "%Y-%m-%d %H:%M:%S.%f")
     
     # Initialize aligned data
     aligned_data = []
 
     # Align each primary timestamp to all sensor datasets
+    n = len(primary_timestamps)
+    i = 0
     for primary_ts in primary_timestamps:
+        # DEBUG PRINTOUT
+        if i == int(n/4):
+            print("25% done ...")
+        elif i == int(n/2):
+            print("50% done ...")
+        elif i == int(3*n/4):
+            print("75% done ...")
+        elif i == int(0.9*n):
+            print("90% done ...")
+        i += 1
+        # END DEBUG
+
         row = {"timestamp": primary_ts, "temperatures": []}
+        primary_ts_dt = datetime.strptime(primary_ts, "%Y-%m-%d %H:%M:%S.%f")
 
         for sensor_data in data:
-            secondary_timestamps = sensor_data["timestamp"]
             secondary_temperatures = sensor_data["temperature"]
 
-            # Find the nearest timestamp in the secondary dataset
-            closest_ts = nearest(primary_ts, secondary_timestamps)
+            # Preprocess secondary timestamps
+            def preprocess_timestamps(s_timestamps):
+                """Pre-convert timestamps to datetime objects for reuse."""
+                return [datetime.strptime(ts, "%Y-%m-%d %H:%M:%S.%f") for ts in s_timestamps]
+            
+            secondary_timestamps = sensor_data["timestamp"]
+            secondary_timestamps_dt = preprocess_timestamps(secondary_timestamps)
+
+            # Call nearest function with preprocessed timestamps
+            closest_ts = nearest(primary_ts_dt, secondary_timestamps_dt)
+            
+            # now, match that timestamp with the specific index for the sample we want
             closest_index = secondary_timestamps.index(closest_ts)
             row["temperatures"].append(secondary_temperatures[closest_index])
 
         aligned_data.append(row)
 
+    print("Finished aligning data")
     return aligned_data
 
 
 def retrieve_aligned_data(max_limit):
-    """
-    Retrieves raw data from the database and aligns it based on the primary sensor's timestamps.
+    print(f"Retrieving aligned data with limit {max_limit}")
 
-    Args:
-        max_limit (int): The maximum number of samples to retrieve.
-    
-    Returns:
-        list: Aligned dataset based on the primary sensor's timestamps.
-    """
-    primary_sensor = 1  # Tag:HARDCODE
+    primary_sensor = 1  # tag:HARDCODE
 
     # Retrieve the timestamp limit for the primary sensor
     timestamp_limit = dbh.sensors.get_timestamp_from_limit(primary_sensor, max_limit)

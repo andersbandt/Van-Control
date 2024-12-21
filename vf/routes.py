@@ -37,7 +37,7 @@ def automate():
 
 @blueprint.route('/data.html')
 def data_fetch():
-    max_limit = request.args.get('max_limit', default=5000, type=int)
+    max_limit = request.args.get('max_limit', default=100, type=int)
 
     # Retrieve aligned data using your new alignment function
     aligned_data = datah.retrieve_aligned_data(max_limit)

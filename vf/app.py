@@ -1,11 +1,10 @@
-from flask import Flask
-from flask import flash
-from flask import redirect
-from flask import render_template
-from flask import request
-from flask import session
-from flask import abort
 
+
+# import needed modules
+from flask import Flask
+
+
+# import user created modules
 from vf import routes
 
 
