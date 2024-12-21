@@ -5,45 +5,10 @@
   <title>Van Control: Temp and Humidity</title>
   <meta charset="utf-8">
   <link rel="stylesheet" type="text/css" href="/static/css/stylesheet.css">
+  <link rel="stylesheet" type="text/css" href="/static/css/chart_style.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      font-family: sans-serif;
-    }
 
-    .chartMenu {
-      width: 100vw;
-      background: #1A1A1A;
-      color: rgba(54, 162, 235, 1);
-      margin-bottom: 20px;
-      /* Add space between charts */
-    }
-
-    .chartMenu p {
-      padding: 10px;
-      font-size: 20px;
-    }
-
-    .chartCard {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      background: rgba(54, 162, 235, 0.2);
-      padding: 20px 0;
-      /* Added padding for space inside the container */
-    }
-
-    .chartBox {
-      width: 700px;
-      padding: 20px;
-      border-radius: 20px;
-      border: solid 3px rgba(54, 162, 235, 1);
-      background: white;
-    }
-  </style>
 </head>
 
 
@@ -53,9 +18,23 @@
   {% include 'asset_navbar.html' %}
 
 
+  <h2>Climate Control Zone</h2>
+
+
   <!-- Slider to control max_limit -->
   <label for="data-slider">Select Max Limit: <span id="slider-value">{{ max_limit }}</span></label>
   <input type="range" id="data-slider" min="100" max="10000" value="{{ max_limit }}" step="10">
+
+
+
+  <h3>Sensor Statistics</h3>
+  <div id="stats-container">
+    <p><strong>High:</strong> <span id="stat-high">Loading...</span></p>
+    <p><strong>Low:</strong> <span id="stat-low">Loading...</span></p>
+    <p><strong>Mean:</strong> <span id="stat-mean">Loading...</span></p>
+    <p><strong>Earliest time:</strong> <span id="stat-time-early">Loading...</span></p>
+    <p><strong>Latest time:</strong> <span id="stat-time-late">Loading...</span></p>
+  </div>
 
 
   <div class="chartMenu">
@@ -207,6 +186,33 @@
           chart2.update();
         })
         .catch(err => console.error('Error fetching data:', err));
+
+
+      // Fetch and update statistics
+      fetchStats(0, maxLimit);  // Assuming sensor_id = 0 for default
+      // TODO: figure out how to do this for all sensors
+
+    });
+
+
+    // Statistics information
+    function fetchStats(sensorId, maxLimit) {
+      fetch(`/stats?sensor_id=${sensorId}&max_limit=${maxLimit}`)
+        .then(response => response.json())
+        .then(stats => {
+          document.getElementById('stat-high').textContent = stats.high ?? 'N/A';
+          document.getElementById('stat-low').textContent = stats.low ?? 'N/A';
+          document.getElementById('stat-mean').textContent = stats.mean ?? 'N/A';
+          document.getElementById('stat-time-early').textContent = stats.earliest_time ?? 'N/A';
+          document.getElementById('stat-time-late').textContent = stats.latest_time ?? 'N/A';
+        })
+        .catch(error => console.error('Error fetching stats:', error));
+    }
+
+    // Fetch statistics on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      const initialMaxLimit = slider.value || 100;  // Use the slider value on page load, default to 100
+      fetchStats(0, initialMaxLimit);  // sensor_id = 0 for default
     });
 
   </script>

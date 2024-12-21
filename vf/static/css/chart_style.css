@@ -1,0 +1,37 @@
+
+* {
+  /* margin: 0;
+  padding: 0; */
+  font-family: sans-serif;
+}
+
+.chartMenu {
+  width: 100vw;
+  background: #1A1A1A;
+  color: rgba(54, 162, 235, 1);
+  margin-bottom: 20px;
+  /* Add space between charts */
+}
+
+.chartMenu p {
+  padding: 10px;
+  font-size: 20px;
+}
+
+.chartCard {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  background: rgba(54, 162, 235, 0.2);
+  padding: 20px 0;
+  /* Added padding for space inside the container */
+}
+
+.chartBox {
+  width: 700px;
+  padding: 20px;
+  border-radius: 20px;
+  border: solid 3px rgba(54, 162, 235, 1);
+  background: white;
+}
+</style>

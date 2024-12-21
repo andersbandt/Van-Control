@@ -12,6 +12,7 @@ from flask.blueprints import Blueprint
 
 # import user created modules
 import db.helpers as dbh
+from analysis import data_helper as datah
 
 # define my Blueprint class that handles everything
 blueprint = Blueprint('routes', __name__, static_folder='static', template_folder='/templates')
@@ -33,25 +34,23 @@ def automate():
     return render_template('automate.html', **locals())
 
 
+
 @blueprint.route('/data.html')
 def data_fetch():
-    # Get the data from the database
-    max_limit = request.args.get('max_limit', 5000, type=int)
+    max_limit = request.args.get('max_limit', default=5000, type=int)
 
-    raw_data = dbh.sensors.get_data(0, max_limit)
+    # Retrieve aligned data using your new alignment function
+    aligned_data = datah.retrieve_aligned_data(max_limit)
 
-    # assign data to variables
-    labels = [row[2] for row in raw_data]
-    temp1 = [row[0] for row in raw_data]
-    humidity1 = [row[1] for row in raw_data]
+    # Process aligned data
+    labels = [row["timestamp"] for row in aligned_data]
+    temp1 = [row["temperatures"][0] for row in aligned_data]
+    temp2 = [row["temperatures"][1] for row in aligned_data]
+    temp3 = [row["temperatures"][2] for row in aligned_data]
+    
 
-    raw_data = dbh.sensors.get_data(1, max_limit)
-    temp2 = [row[0] for row in raw_data]
-    humidity2 = [row[1] for row in raw_data]
-
-    raw_data = dbh.sensors.get_data(2, max_limit)
-    temp3 = [row[0] for row in raw_data]
-    humidity3 = [row[1] for row in raw_data]
+    # NOTE: Assuming you want to extend this logic to include humidity or other datasets,
+    # include those calculations here as required.
 
     # If the request is an AJAX call, return JSON
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -60,9 +59,9 @@ def data_fetch():
             'data1_1': temp1,
             'data1_2': temp2,
             'data1_3': temp3,
-            'data2_1': humidity1,
-            'data2_2': humidity2,
-            'data2_3': humidity3,
+            'data2_1': temp1,
+            'data2_2': temp2,
+            'data2_3': temp3
         })
 
     # Otherwise, return the HTML page with data rendered in Jinja
@@ -71,9 +70,9 @@ def data_fetch():
                            data1_1=temp1,
                            data1_2=temp2,
                            data1_3=temp3,
-                           data2_1=humidity1,
-                           data2_2=humidity2,
-                           data2_3=humidity3)
+                           data2_1=temp1,
+                           data2_2=temp2,
+                           data2_3=temp3)
 
 
 @blueprint.route('/battery.html')
@@ -95,15 +94,34 @@ def battery():
 def control():
     return render_template('control.html', **locals())
 
-# sensor stuff
-# @blueprint.route('/readpH')
-# def recordPH():
-# 	pHString = str(sensorControl.readpH())
-# 	return render_template('control.html', pH = pHString)
 
-# # light stuff
-# @blueprint.route('/lightOn')
-# def lightOn():
-# 	print("The light should be on")
-# 	lightControl.lightOn()
-# 	return render_template('control.html', **locals())
+
+###############################################
+###########    API data stuff      ############
+###############################################
+@blueprint.route('/stats', methods=['GET'])
+def get_stats():
+    sensor_id = request.args.get('sensor_id', default=0, type=int)
+    max_limit = request.args.get('max_limit', default=5000, type=int)
+    
+    result = dbh.sensors.get_stats(sensor_id, max_limit)
+
+    def c_to_f(celsius):
+        return celsius*1.8 + 32
+
+    
+    # Calculate statistics
+    # TODO: pass in data in both Celsius and Fahrenheit here
+    stats = {
+        'high': c_to_f(result['high']),
+        'low': c_to_f(result['low']),
+        'mean': c_to_f(round(result['mean'], 2)),
+        'earliest_time': result['earliest_time'],
+        'latest_time': result['latest_time']
+    }
+
+    # Return stats as JSON for AJAX to consume
+    return jsonify(stats)
+
+
+

@@ -17,8 +17,8 @@ class TableStatements:
     sensor_data = """CREATE TABLE IF NOT EXISTS sensor_data (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         sensor_id INTEGER NOT NULL,        -- ID of the sensor (could be unique for each sensor)
-                        temperature REAL,         -- Temperature in Celsius
-                        humidity REAL,            -- Humidity percentage
+                        temperature REAL,                  -- Temperature in Celsius
+                        humidity REAL,                     -- Humidity percentage
                         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
                     );"""
 
@@ -36,8 +36,6 @@ Create all the tables. It uses a list instead
 of importing the TableStatements class for
 dependency injection reasons.
 """
-
-
 def all_tables_init(statements: list, database_directory: str) -> bool:
     print("Initializing all tables in database .db file!!! Exciting!!!")
     try:
