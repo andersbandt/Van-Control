@@ -29,4 +29,5 @@
 
 1. [x] what are methods I can use to align datapoints from sensors?
    2. *have some method but it's quite slow right now for many datapoints*
+   3. For a sample max limit of 8570 it took about 52 minutes. This will be even worse when the server is running on a Pi (probably)
 

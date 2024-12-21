@@ -1,5 +1,6 @@
 
 # import needed modules
+import time
 from datetime import datetime
 from bisect import bisect_left, bisect_right, bisect
 
@@ -25,24 +26,24 @@ def align_data(primary, data):
     primary_timestamps = data[primary]["timestamp"]
 
     
-    def nearest(pts_dt, s_timestamps_dt):
-        s_timestamps_dt = sorted(s_timestamps_dt)
+    def nearest(pts, s_ts):
+        s_ts = sorted(s_ts)
         
         # Use binary search to find the insertion point
-        idx = bisect_left(s_timestamps_dt, pts_dt)
+        idx = bisect_left(s_ts, pts)
                 
         # Handle edge cases where pts_dt is out of the range of s_timestamps_dt
         if idx == 0:
-            closest = s_timestamps_dt[0]
-        elif idx == len(s_timestamps_dt):
-            closest = s_timestamps_dt[-1]
+            closest = s_ts[0]
+        elif idx == len(s_ts):
+            closest = s_ts[-1]
         else:
             # Compare two neighbors to find the closest
-            before = s_timestamps_dt[idx - 1]
-            after = s_timestamps_dt[idx]
-            closest = before if abs(before - pts_dt) <= abs(after - pts_dt) else after
+            before = s_ts[idx - 1]
+            after = s_ts[idx]
+            closest = before if abs(before - pts) <= abs(after - pts) else after
 
-        return datetime.strftime(closest, "%Y-%m-%d %H:%M:%S.%f")
+        return closest
     
     # Initialize aligned data
     aligned_data = []
@@ -64,21 +65,26 @@ def align_data(primary, data):
         # END DEBUG
 
         row = {"timestamp": primary_ts, "temperatures": []}
-        primary_ts_dt = datetime.strptime(primary_ts, "%Y-%m-%d %H:%M:%S.%f")
+        primary_ts_epoch = time.mktime(datetime.strptime(primary_ts, "%Y-%m-%d %H:%M:%S.%f").timetuple()) + datetime.strptime(primary_ts, "%Y-%m-%d %H:%M:%S.%f").microsecond / 1_000_000
 
         for sensor_data in data:
             secondary_temperatures = sensor_data["temperature"]
 
-            # Preprocess secondary timestamps
+            # Preprocess secondary timestamps to epoch seconds
             def preprocess_timestamps(s_timestamps):
-                """Pre-convert timestamps to datetime objects for reuse."""
-                return [datetime.strptime(ts, "%Y-%m-%d %H:%M:%S.%f") for ts in s_timestamps]
-            
+                """Pre-convert timestamps to epoch seconds for reuse."""
+                return [
+                    time.mktime(datetime.strptime(ts, "%Y-%m-%d %H:%M:%S.%f").timetuple()) + 
+                    datetime.strptime(ts, "%Y-%m-%d %H:%M:%S.%f").microsecond / 1_000_000
+                    for ts in s_timestamps
+                ]
+
             secondary_timestamps = sensor_data["timestamp"]
-            secondary_timestamps_dt = preprocess_timestamps(secondary_timestamps)
+            secondary_timestamps_epoch = preprocess_timestamps(secondary_timestamps)
 
             # Call nearest function with preprocessed timestamps
-            closest_ts = nearest(primary_ts_dt, secondary_timestamps_dt)
+            closest_ts_epoch = nearest(primary_ts_epoch, secondary_timestamps_epoch)
+            closest_ts = datetime.fromtimestamp(closest_ts_epoch).strftime("%Y-%m-%d %H:%M:%S.%f")
             
             # now, match that timestamp with the specific index for the sample we want
             closest_index = secondary_timestamps.index(closest_ts)
