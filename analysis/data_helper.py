@@ -25,7 +25,6 @@ def align_data(primary, data):
     print("\nAligning data ...")
     primary_timestamps = data[primary]["timestamp"]
 
-    
     def nearest(pts, s_ts):
         s_ts = sorted(s_ts)
         
@@ -45,52 +44,41 @@ def align_data(primary, data):
 
         return closest
     
+    
+    # Preprocess secondary timestamps to epoch seconds
+    def preprocess_timestamps(s_timestamps):
+        """Pre-convert timestamps to epoch seconds for reuse."""
+        return [
+            time.mktime(datetime.strptime(ts, "%Y-%m-%d %H:%M:%S.%f").timetuple()) + 
+            datetime.strptime(ts, "%Y-%m-%d %H:%M:%S.%f").microsecond / 1_000_000
+            for ts in s_timestamps
+        ]
+        
+    
     # Initialize aligned data
-    aligned_data = []
+    aligned_data = [{"timestamp": ts, "temperatures": []} for ts in primary_timestamps]
 
-    # Align each primary timestamp to all sensor datasets
-    n = len(primary_timestamps)
-    i = 0
-    for primary_ts in primary_timestamps:
-        # DEBUG PRINTOUT
-        if i == int(n/4):
-            print("25% done ...")
-        elif i == int(n/2):
-            print("50% done ...")
-        elif i == int(3*n/4):
-            print("75% done ...")
-        elif i == int(0.9*n):
-            print("90% done ...")
-        i += 1
-        # END DEBUG
 
-        row = {"timestamp": primary_ts, "temperatures": []}
-        primary_ts_epoch = time.mktime(datetime.strptime(primary_ts, "%Y-%m-%d %H:%M:%S.%f").timetuple()) + datetime.strptime(primary_ts, "%Y-%m-%d %H:%M:%S.%f").microsecond / 1_000_000
+    primary_timestamps_epoch = preprocess_timestamps(primary_timestamps)
 
-        for sensor_data in data:
-            secondary_temperatures = sensor_data["temperature"]
+    for sensor_data in data:            
+        secondary_temperatures = sensor_data["temperature"]
 
-            # Preprocess secondary timestamps to epoch seconds
-            def preprocess_timestamps(s_timestamps):
-                """Pre-convert timestamps to epoch seconds for reuse."""
-                return [
-                    time.mktime(datetime.strptime(ts, "%Y-%m-%d %H:%M:%S.%f").timetuple()) + 
-                    datetime.strptime(ts, "%Y-%m-%d %H:%M:%S.%f").microsecond / 1_000_000
-                    for ts in s_timestamps
-                ]
+        secondary_timestamps = sensor_data["timestamp"]
+        secondary_timestamps_epoch = preprocess_timestamps(secondary_timestamps)
 
-            secondary_timestamps = sensor_data["timestamp"]
-            secondary_timestamps_epoch = preprocess_timestamps(secondary_timestamps)
-
-            # Call nearest function with preprocessed timestamps
+        # Loop through each primary timestamp (inner loop)
+        for i, (primary_ts, primary_ts_epoch) in enumerate(zip(primary_timestamps, primary_timestamps_epoch)):
+            # Find the closest timestamp in the secondary dataset
             closest_ts_epoch = nearest(primary_ts_epoch, secondary_timestamps_epoch)
             closest_ts = datetime.fromtimestamp(closest_ts_epoch).strftime("%Y-%m-%d %H:%M:%S.%f")
-            
-            # now, match that timestamp with the specific index for the sample we want
-            closest_index = secondary_timestamps.index(closest_ts)
-            row["temperatures"].append(secondary_temperatures[closest_index])
 
-        aligned_data.append(row)
+            # Match that timestamp with the specific index for the sample we want
+            closest_index = secondary_timestamps.index(closest_ts)
+
+            # Append the temperature corresponding to the closest timestamp
+            aligned_data[i]["temperatures"].append(secondary_temperatures[closest_index])
+
 
     print("Finished aligning data")
     return aligned_data
