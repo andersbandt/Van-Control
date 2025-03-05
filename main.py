@@ -6,16 +6,28 @@ import sys
 import time
 
 # import user created modules
+from vc import vc_driver
 from vc.sensors import dht
 from vc.electrical.vedirect import Vedirect
 
 
 # main loop of program
 def main():
-    ve = Vedirect(port=None, timeout=2)  # TODO: this only gets one chance to be setup... what about case where I connect/disconnect my serial converter?
+    ve = Vedirect(port=None, timeout=2)
     while True:
+        # TODO: check for disconnect cases to possibly reconnect with things like `ve`
+
+        # read and log sensor data
         dht.update_all_dht()
         ve.save_data_single()
+
+        # check control panel
+        for i in range(1, 19):
+            state = vc_driver.parse_button(i)
+            if state:
+                vc_driver.action(i)
+        
+        # main loop delay
         time.sleep(15)
 
 
