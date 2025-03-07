@@ -5,15 +5,21 @@
 import sys
 import time
 
+# import database
+import db.helpers as dbh
+
 # import user created modules
 from vc import vc_driver
 from vc.sensors import dht
 from vc.electrical.vedirect import Vedirect
+from vc.display.drivers import display_control as dispc
 
 
 # main loop of program
 def main():
     ve = Vedirect(port=None, timeout=2)
+    lcd = dispc.return_lcd()
+
     while True:
         # TODO: check for disconnect cases to possibly reconnect with things like `ve`
 
@@ -26,9 +32,20 @@ def main():
             state = vc_driver.parse_button(i)
             if state:
                 vc_driver.action(i)
-        
+
+        # get battery statistics and update display
+        battery_stats = dbh.battery.get_battery_data()
+        lcd.display_out("testing123!")
+        # TODO: figure out how to actually display below things elegantly
+        # voltage=battery_data['voltage'],
+        # current=battery_data['current'],
+        # power=battery_data['power'],
+        # state_of_charge=battery_data['state_of_charge'],
+        # timestamp=battery_data['timestamp']
+
         # main loop delay
         time.sleep(15)
+
 
 
 def db_init():
