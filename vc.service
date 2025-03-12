@@ -1,0 +1,12 @@
+[Unit]
+Description=Van-Control (vc)
+After=multi-user.target
+
+[Service]
+Type=idle
+User=anders
+WorkingDirectory=/home/anders/Documents/GitHub/Van-Control/
+ExecStart=/usr/bin/python /home/anders/Documents/GitHub/Van-Control/main_vc.py
+
+[Install]
+WantedBy=multi-user.target

@@ -37,7 +37,7 @@ class Vedirect:
             self.ser = serial.Serial(self.serialport, 19200, timeout=timeout)
             print(f"VE.Direct connected at port {self.serialport} with a timeout of {timeout}\n")
         else:
-            return False
+            self.ser = None
 
         # setup various other things
         self.header1 = ord('\r')
@@ -103,19 +103,24 @@ class Vedirect:
 
     # read_data_single: returns a single dict with a reading sample
     def read_data_single(self):
-        data = self.ser.read()
-        for single_byte in data:
-            packet = self.input(single_byte)
-            if packet is not None:
-                return packet
+        if self.ser is not None:
+            data = self.ser.read()
+            for single_byte in data:
+                packet = self.input(single_byte)
+                if packet is not None:
+                    return packet
+        else:
+            print("Can't read data ve.direct data. No serial connection.")
+            return None
+                    
 
     ## read_data_callback: performs `callback` on the read sample
-    def read_data_callback(self, callback):
-        data = self.ser.read()
-        for byte in data:
-            packet = self.input(byte)
-            if packet is not None:
-                callback(packet)
+    # def read_data_callback(self, callback):
+    #     data = self.ser.read()
+    #     for byte in data:
+    #         packet = self.input(byte)
+    #         if packet is not None:
+    #             callback(packet)
 
     def save_data_single(self):
         packet = self.read_data_single()

@@ -1,0 +1,12 @@
+[Unit]
+Description=Van-Flask (vf)
+After=multi-user.target
+
+[Service]
+Type=idle
+User=root
+WorkingDirectory=/home/anders/Documents/GitHub/Van-Control
+ExecStart=/usr/bin/python /home/anders/Documents/GitHub/Van-Control/main_vf.py
+
+[Install]
+WantedBy=multi-user.target

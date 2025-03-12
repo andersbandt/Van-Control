@@ -1,5 +1,6 @@
 
 
+
 # import needed modules
 import sqlite3
 import datetime
@@ -14,6 +15,7 @@ from vc.classes.SensorEvent import SensorEvent
 def insert_reading(sensor_event: SensorEvent) -> bool:
     with sqlite3.connect(DATABASE_DIRECTORY) as conn:
         cur = conn.cursor()
+        conn.set_trace_callback(print)
         cur.execute(
             "INSERT INTO sensor_data (sensor_id, temperature, humidity, timestamp) VALUES(?, ?, ?, ?)",
             (
