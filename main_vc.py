@@ -30,10 +30,10 @@ def main():
         ve.save_data_single()
 
         # check control panel
-        for i in range(1, 19):
-            state = vc_driver.parse_button(i)
-            if state:
-                vc_driver.action(i)
+#        for i in range(1, 19):
+#            state = vc_driver.parse_button(i)
+#            if state:
+#                vc_driver.action(i)
 
                 
         # get battery statistics and update display
@@ -42,17 +42,25 @@ def main():
         import pprint
         pprint.pprint(battery_data)
         print("\nbattery data above!!\n")
-        
-        dispc.display_bat_out(
-            battery_data['state_of_charge'],
-            battery_data['voltage'],
-            battery_data['current'],
-        )
+
+        #        dispc.display_bat_out(
+#            battery_data['state_of_charge'],
+#            battery_data['voltage'],
+#            battery_data['current'],
+        # )
         # timestamp=battery_data['timestamp']
+
+
+        # get tempereature data and update display
+        for i in range(0, 3): # TODO: eliminate this tag:HARDCODE
+            data = dbh.sensors.get_data(i, 1)
+            dispc.display_temp_out(f"{i}", data[0][0]*1.8+32, data[0][1], data[0][2])
+            time.sleep(3)
+                
 
         # main loop delay
         # TODO: need a way to bring this delay DOWN but still only log things like DHT sensor samples every 5 seconds ....
-        time.sleep(5)
+        time.sleep(1)
 
 
 

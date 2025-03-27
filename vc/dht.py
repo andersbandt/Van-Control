@@ -38,3 +38,6 @@ def update_all_dht():
             sensor_event.print()
             # handle logging to database
             dbh.sensors.insert_reading(sensor_event)
+        else:
+            print(f"ERROR: can't read from sensor #{i}")
+            

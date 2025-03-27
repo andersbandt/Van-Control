@@ -11,7 +11,7 @@ from db import DATABASE_DIRECTORY
 def insert_reading(label, value, timestamp) -> bool:
     with sqlite3.connect(DATABASE_DIRECTORY) as conn:
         cur = conn.cursor()
-        conn.set_trace_callback(print)
+#        conn.set_trace_callback(print)
         cur.execute(
             "INSERT INTO battery_data (label, value, timestamp) VALUES(?, ?, ?)",
             (

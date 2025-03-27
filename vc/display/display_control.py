@@ -34,10 +34,18 @@ def display_out(string, line):
         print(f"LCD not active --> {string}")
 
 
+##########################################################
 ### custom display functions
+##########################################################
 def display_bat_out(soc, voltage, current):
     mylcd.lcd_display_string(f"{current} A  {voltage} V")
     mylcd.lcd_display_string(f"SOC: {soc} %", line=2)
+
+
+
+def display_temp_out(string, temp, humidity, timestamp):
+    mylcd.lcd_display_string(f"Area: {string}= {temp} F / {humidity} RH")
+    mylcd.lcd_display_string(f"{timestamp}", line=2)
 
         
 # TODO: add generic function to display a dict with keys?

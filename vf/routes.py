@@ -37,18 +37,32 @@ def automate():
 
 @blueprint.route('/data.html')
 def data_fetch():
-    max_limit = request.args.get('max_limit', default=100, type=int)
+    max_limit = request.args.get('max_limit', default=10, type=int)
 
+
+    # METHOD 1 (preferred): sensor alignment
     # Retrieve aligned data using your new alignment function
     aligned_data = datah.retrieve_aligned_data(max_limit)
-
     # Process aligned data
-    labels = [row["timestamp"] for row in aligned_data]
-    temp1 = [row["temperatures"][0] for row in aligned_data]
+    #labels = [row["timestamp"] for row in aligned_data]
+    #temp1 = [row["temperatures"][0] for row in aligned_data]
     temp2 = [row["temperatures"][1] for row in aligned_data]
     temp3 = [row["temperatures"][2] for row in aligned_data]
-    
 
+
+    # METHOD 2 (old): just getting the same number from each sensor
+    data = dbh.sensors.get_data(0, max_limit)
+    temp1 = [row[0] for row in data]
+    hum1 = [row[1] for row in data]
+    labels = [row[2] for row in data]
+
+    data = dbh.sensors.get_data(1, max_limit)
+    temp2 = [row[0] for row in data]
+
+    data = dbh.sensors.get_data(2, max_limit)
+    temp3 = [row[0] for row in data]
+    
+        
     # NOTE: Assuming you want to extend this logic to include humidity or other datasets,
     # include those calculations here as required.
 
@@ -70,7 +84,7 @@ def data_fetch():
                            data1_1=temp1,
                            data1_2=temp2,
                            data1_3=temp3,
-                           data2_1=temp1,
+                           data2_1=hum1,
                            data2_2=temp2,
                            data2_3=temp3)
 

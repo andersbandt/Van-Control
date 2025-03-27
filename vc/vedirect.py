@@ -104,7 +104,7 @@ class Vedirect:
     # read_data_single: returns a single dict with a reading sample
     def read_data_single(self):
         if self.ser is not None:
-            data = self.ser.read()
+            data = self.ser.read_until('\n')
             for single_byte in data:
                 packet = self.input(single_byte)
                 if packet is not None:
@@ -134,5 +134,7 @@ class Vedirect:
                     timestamp
                 )
             print("... BMV-712 packet saved")
+        else:
+            print("ERROR: issue with ve.direct saving")
 
 

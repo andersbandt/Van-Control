@@ -1,4 +1,5 @@
 
+
 # import needed modules
 import time
 from datetime import datetime
@@ -87,7 +88,7 @@ def align_data(primary, data):
 def retrieve_aligned_data(max_limit):
     print(f"Retrieving aligned data with limit {max_limit}")
 
-    primary_sensor = 1  # tag:HARDCODE
+    primary_sensor = 0  # tag:HARDCODE
 
     # Retrieve the timestamp limit for the primary sensor
     timestamp_limit = dbh.sensors.get_timestamp_from_limit(primary_sensor, max_limit)
