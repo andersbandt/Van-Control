@@ -6,6 +6,7 @@ import datetime
 # import user created modules
 from vc.classes.SensorEvent import SensorEvent
 from vc.gpio import PINS
+from vc import ds1307
 import db.helpers as dbh
 
 dht_device1 = adafruit_dht.DHT22(PINS["dht_device1"], use_pulseio=False)
@@ -15,12 +16,17 @@ dht_device3 = adafruit_dht.DHT22(PINS["dht_device3"], use_pulseio=False)
 dht_device_list = [dht_device1, dht_device2, dht_device3]
 
 
+
+
+
 def check_dht(sensor_index):
     dht_device = dht_device_list[sensor_index]
 
     try:
         temperature_c = dht_device.temperature
-        timestamp = datetime.datetime.now()
+        #timestamp = datetime.datetime.now()
+        ds1307rtc = ds1307.DS1307(i2c_bus_number=1, addr=0x68) # TODO; is turning this into an object really the best way to do this? Should I just make one instance and make that callable in a module?
+        timestamp = ds1307rtc.datetime
         humidity = dht_device.humidity
     except RuntimeError:
         return None

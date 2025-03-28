@@ -4,31 +4,6 @@
 DS1307 Real Time Clock driver
 =============================
 
-MicroPython library to support DS1307 Real Time Clock (RTC).
-
-Acknowledgement: This module was derived in outline from the adafruit circuit python DS1307
-real time clock library. That library was authored by Philip R. Moyer and
-Radomir Dopieralski for Adafruit Industries.
-See repository: https://github.com/adafruit/Adafruit_CircuitPython_DS1307.git
-
-Beware the DS1307 breakout is a 5V board but many boards are 3.3v logic level!
-Make sure that the SCL and SDA pins used are 5v tolerant or level shifted to 3.3v.
-
-* Author: Peter Lumb (@peter-l5)
-* Build: v104
-
-Implementation Notes
---------------------
-
-**Hardware:**
-
-* For example: Adafruit `DS1307 RTC breakout <https://www.adafruit.com/products/3296>`
-  (Adafruit Product ID: 3296)
-
-**Software and Dependencies:**
-
-* micropython firmware: https://micropython.org/
-
 **Notes:**
 
 #1.  the square-wave output facility is not supported by this driver.
@@ -41,11 +16,16 @@ Implementation Notes
 __version__ = "v104"
 __repo__ = "https://github.com/peter-l5"
 
-from micropython import const
+
+from datetime import datetime
+import smbus
+
 
 # register definitions (see datasheet)
-_DATETIME_REGISTER = const(0x00)
-_CONTROL_REGISTER  = const(0x07)
+_DATETIME_REGISTER = 0x00
+_CONTROL_REGISTER  = 0x07
+
+
 
 class DS1307():
     """
@@ -53,40 +33,16 @@ class DS1307():
 
     **Quickstart: Importing and using the device**
 
-        Here is an example of using the :class:`DS1307` class.
-        First you will need to import the libraries to use the sensor
-
-        .. code-block:: python
-
-            from machine import Pin, SoftI2C
-            import ds1307
-
-        Once this is done you can define your `board.I2C` object and define your DS1307 clock object
-
-        .. code-block:: python
-
-            # uses SoftI2C class and pins for Raspberry Pi pico 
-            i2c0 = SoftI2C(scl=Pin(1), sda=Pin(0), freq=100000)
-            ds1307rtc = ds1307.DS1307(i2c0, 0x68)
-
-        Now you can give the current time to the device.
-
-        .. code-block:: python
-
+            ds1307rtc = ds1307.DS1307(1, 0x68)
             # set time (year, month, day, hours. minutes, seconds, weekday: integer: 0-6 )
             ds1307rtc.datetime = (2022, 12, 18, 18, 9, 17, 6)
 
-        You can access the current time with the :attr:`datetime` property.
-
-        .. code-block:: python
-
+            # You can access the current time with the :attr:`datetime` property.
             current_time = ds1307rtc.datetime
 
-        You can also access the current time with the :attr:`datetimeRTC` property.
-        This returns the time in a format suitable for directly setting the internal RTC clock
-        of the Raspberry Pi Pico (once the RTC module is imported).
-
-        .. code-block:: python
+            # You can also access the current time with the :attr:`datetimeRTC` property.
+            # This returns the time in a format suitable for directly setting the internal RTC clock
+            # of the Raspberry Pi Pico (once the RTC module is imported).
 
         from machine import RTC
         machine.RTC().datetime(ds1307rtc.datetimeRTC)
@@ -97,68 +53,104 @@ class DS1307():
         See also the example code provided.
     """
 
-    def __init__(self, i2c_bus: I2C, addr = 0x68) -> None:
-        self.i2c = i2c_bus
+
+class DS1307:
+    def __init__(self, i2c_bus_number=1, addr=0x68) -> None:
+        self.bus = smbus.SMBus(i2c_bus_number)
         self.addr = addr
-        self.buf = bytearray(7)
-        self.buf1 = bytearray(1)
 
     @property
     def datetime(self) -> tuple:
-        """Returns the current date, time and day of the week."""
-        self.i2c.readfrom_mem_into(self.addr, _DATETIME_REGISTER, self.buf)
-        hr24 = False if (self.buf[2] & 0x40) else True
-        _datetime = (self._bcd2dec(self.buf[6]) + 2000,
-                     self._bcd2dec(self.buf[5]),
-                     self._bcd2dec(self.buf[4]),
-                     self._bcd2dec(self.buf[2]) if hr24 else
-                         self._bcd2dec((self.buf[2] & 0x1f))
-                         +  12 if (self.buf[2] & 0x20) else 0,
-                     self._bcd2dec(self.buf[1]), # minutes
-                     self._bcd2dec(self.buf[0] & 0x7f), # seconds, remove oscilator disable flag
-                     self.buf[3] -1,
-                     None # unknown number of days since start of year
-                     )
-        return _datetime        
+        """Returns the current date, time, and day of the week."""
+        buf = self.bus.read_i2c_block_data(self.addr, _DATETIME_REGISTER, 7)
+        
+        hr24 = False if (buf[2] & 0x40) else True
+        _datetime = datetime(
+            self._bcd2dec(buf[6]) + 2000,  # Year
+            self._bcd2dec(buf[5]),  # Month
+            self._bcd2dec(buf[4]),  # Day
+            self._bcd2dec(buf[2]) if hr24 else
+            self._bcd2dec((buf[2] & 0x1F)) + 12 if (buf[2] & 0x20) else 0, # Hours?
+            self._bcd2dec(buf[1]),  # Minutes
+            self._bcd2dec(buf[0] & 0x7F),  # Seconds (mask oscillator disable flag)
+#            buf[3] - 1,  # Day of the week (adjusted index)
+#            None  # Unknown number of days since start of year
+        )
+        return _datetime
 
     @datetime.setter
     def datetime(self, datetime: tuple = None):
-        """Set the current date, time and day of the week, and starts the clock."""
-        self.buf[6] = self._dec2bcd(datetime[0] % 100) # years
-        self.buf[5] = self._dec2bcd(datetime[1] ) # months
-        self.buf[4] = self._dec2bcd(datetime[2] ) # days
-        self.buf[2] = self._dec2bcd(datetime[3] ) # hours
-        self.buf[1] = self._dec2bcd(datetime[4] ) # minutes
-        self.buf[0] = self._dec2bcd(datetime[5] ) # seconds
-        self.buf[3] = self._dec2bcd(datetime[6] +1) # weekday (0-6)
-        self.i2c.writeto_mem(self.addr, _DATETIME_REGISTER, self.buf)
- 
+        """Set the current date, time, and day of the week, and start the clock."""
+        buf = [
+            self._dec2bcd(datetime[5]),  # Seconds
+            self._dec2bcd(datetime[4]),  # Minutes
+            self._dec2bcd(datetime[3]),  # Hours
+            self._dec2bcd(datetime[6] + 1),  # Weekday (0-6)
+            self._dec2bcd(datetime[2]),  # Days
+            self._dec2bcd(datetime[1]),  # Months
+            self._dec2bcd(datetime[0] % 100)  # Years (last two digits)
+        ]
+        self.bus.write_i2c_block_data(self.addr, _DATETIME_REGISTER, buf)
+
     @property
     def datetimeRTC(self) -> tuple:
         _dt = self.datetime
         return _dt[0:3] + (None,) + _dt[3:6] + (None,)
- 
+
+    @property
+    def datetimeDatetime(self) -> tuple:
+        _dt = self.datetime
+        return _dt[0:3] + (None,) + _dt[3:6] + (None,)
+
+
+    def set_datetime_from_sys(self):
+        # check if we are connected to the Internet
+        import requests
+        try:
+            requests.get("https://www.google.com", timeout=5)
+        except (requests.ConnectionError, requests.Timeout):
+            print("ERROR: can't set RTC time from sys clock. No internet.")
+            return False
+
+        # get system time
+        current_time = datetime.now()
+        print(f"... current system time is {current_time}")
+
+        # Convert system time to the expected format (YYYY, MM, DD, HH, MM, SS, Weekday)
+        rtc_time = (
+            current_time.year,
+            current_time.month,
+            current_time.day,
+            current_time.hour,
+            current_time.minute,
+            current_time.second,
+            current_time.weekday()  # Weekday (0 = Monday, 6 = Sunday)
+        )
+
+        # Use the existing datetime setter
+        self.datetime = rtc_time
+        return True
+    
+        
     @property
     def disable_oscillator(self) -> bool:
         """True if the oscillator is disabled."""
-        self.i2c.readfrom_mem_into(self.addr, _DATETIME_REGISTER, self.buf1)
-        self._disable_oscillator = bool(self.buf1[0] & 0x80)
-        return self._disable_oscillator
-    
+        buf = self.bus.read_byte_data(self.addr, _DATETIME_REGISTER)
+        return bool(buf & 0x80)
+
     @disable_oscillator.setter
     def disable_oscillator(self, value: bool):
         """Set or clear the DS1307 disable oscillator flag."""
-        self._disable_oscillator = value
-        self.i2c.readfrom_mem_into(self.addr, _DATETIME_REGISTER, self.buf1)
-        self.buf1[0] &= 0x7f  # preserve seconds
-        self.buf1[0] |= self._disable_oscillator << 7
-        self.i2c.writeto_mem(self.addr, _DATETIME_REGISTER, self.buf1)
-  
+        buf = self.bus.read_byte_data(self.addr, _DATETIME_REGISTER)
+        buf &= 0x7F  # Preserve seconds
+        buf |= (value << 7)
+        self.bus.write_byte_data(self.addr, _DATETIME_REGISTER, buf)
+
     def _bcd2dec(self, bcd):
-        """Convert binary-coded decimal to decimal. Works for values from 0 to 99 (decimal)."""
+        """Convert binary-coded decimal to decimal. Works for values from 0 to 99."""
         return (bcd >> 4) * 10 + (bcd & 0x0F)
-    
+
     def _dec2bcd(self, decimal):
         """Convert decimal to binary-coded decimal. Works for values from 0 to 99."""
         return ((decimal // 10) << 4) + (decimal % 10)
-  
+
