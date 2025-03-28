@@ -17,8 +17,6 @@ dht_device_list = [dht_device1, dht_device2, dht_device3]
 
 
 
-
-
 def check_dht(sensor_index):
     dht_device = dht_device_list[sensor_index]
 

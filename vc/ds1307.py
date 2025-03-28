@@ -97,12 +97,7 @@ class DS1307:
         _dt = self.datetime
         return _dt[0:3] + (None,) + _dt[3:6] + (None,)
 
-    @property
-    def datetimeDatetime(self) -> tuple:
-        _dt = self.datetime
-        return _dt[0:3] + (None,) + _dt[3:6] + (None,)
-
-
+    
     def set_datetime_from_sys(self):
         # check if we are connected to the Internet
         import requests
