@@ -190,9 +190,8 @@
 
 
       // Fetch and update statistics
-      fetchStats(0, maxLimit);  // Assuming sensor_id = 0 for default
+      fetchStats(2, maxLimit);
       // TODO: figure out how to do this for all sensors
-
     });
 
 
@@ -212,8 +211,8 @@
 
     // Fetch statistics on page load
     window.addEventListener('DOMContentLoaded', () => {
-      const initialMaxLimit = slider.value || 100;  // Use the slider value on page load, default to 100
-      fetchStats(0, initialMaxLimit);  // sensor_id = 0 for default
+      const initialMaxLimit = slider.value || initialMaxLimit;  // Use the slider value on page load, default to 100
+      fetchStats(2, initialMaxLimit);
     });
 
   </script>
