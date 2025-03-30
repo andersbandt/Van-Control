@@ -95,9 +95,9 @@ def retrieve_aligned_data(max_limit):
     timestamp_limit = dbh.sensors.get_timestamp_from_limit(primary_sensor, max_limit)
 
     # Get the raw data for each sensor
-    raw_data0 = dbh.sensors.get_data_from_time(0, timestamp_limit)
-    raw_data1 = dbh.sensors.get_data_from_time(1, timestamp_limit)
-    raw_data2 = dbh.sensors.get_data_from_time(2, timestamp_limit)
+    raw_data0 = dbh.sensors.get_data(0, max_limit)
+    raw_data1 = dbh.sensors.get_data(1, max_limit)
+    raw_data2 = dbh.sensors.get_data(2, max_limit)
 
     # Convert raw data to dictionary format
     def process_raw_data(raw_data):

@@ -36,12 +36,13 @@ def automate():
 
 @blueprint.route('/data.html')
 def data_fetch():
-    max_limit = request.args.get('max_limit', default=10, type=int)
+    max_limit = request.args.get('max_limit', default=500, type=int)
 
 
     # METHOD 1 (preferred): sensor alignment
     # Retrieve aligned data using your new alignment function
     aligned_data = datah.retrieve_aligned_data(max_limit)
+    
     # Process aligned data
     labels = [row["timestamp"] for row in aligned_data]
     temp1 = [row["temperatures"][0] for row in aligned_data]

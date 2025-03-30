@@ -33,7 +33,7 @@ def insert_reading(sensor_event: SensorEvent) -> bool:
 # Function to query the database
 def get_data(sensor_id, limit):
     query = """
-        SELECT temperature, humidity, timestamp 
+        SELECT timestamp, temperature, humidity 
         FROM sensor_data 
         WHERE sensor_id=? 
         ORDER BY timestamp 
@@ -58,7 +58,7 @@ def get_data_from_time(sensor_id, timestamp_limit):
     print("Executing get_data_from_time...")
 
     query = """
-        SELECT timestamp, temperature 
+        SELECT timestamp, temperature, humidity 
         FROM sensor_data 
         WHERE sensor_id = ? 
           AND timestamp >= ?
