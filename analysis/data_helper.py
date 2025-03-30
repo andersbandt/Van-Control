@@ -58,16 +58,17 @@ def align_data(primary, data):
     
     # Initialize aligned data
     aligned_data = [{"timestamp": ts, "temperatures": []} for ts in primary_timestamps]
-
-
     primary_timestamps_epoch = preprocess_timestamps(primary_timestamps)
 
-    for sensor_data in data:            
+    for sensor_data in data:
         secondary_temperatures = sensor_data["temperature"]
-
         secondary_timestamps = sensor_data["timestamp"]
         secondary_timestamps_epoch = preprocess_timestamps(secondary_timestamps)
 
+
+        print("anders deailing with below for debug data")
+        print(secondary_timestamps)
+        
         # Loop through each primary timestamp (inner loop)
         for i, (primary_ts, primary_ts_epoch) in enumerate(zip(primary_timestamps, primary_timestamps_epoch)):
             # Find the closest timestamp in the secondary dataset
@@ -88,7 +89,7 @@ def align_data(primary, data):
 def retrieve_aligned_data(max_limit):
     print(f"Retrieving aligned data with limit {max_limit}")
 
-    primary_sensor = 0  # tag:HARDCODE
+    primary_sensor = 2  # tag:HARDCODE
 
     # Retrieve the timestamp limit for the primary sensor
     timestamp_limit = dbh.sensors.get_timestamp_from_limit(primary_sensor, max_limit)

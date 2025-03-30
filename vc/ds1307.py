@@ -76,6 +76,8 @@ class DS1307:
 #            buf[3] - 1,  # Day of the week (adjusted index)
 #            None  # Unknown number of days since start of year
         )
+        _datetime = _datetime.strftime('%Y-%m-%d %H:%M:%S') + ".000000" # add fake milliseconds value for consistency with systime implementation
+        
         return _datetime
 
     @datetime.setter
