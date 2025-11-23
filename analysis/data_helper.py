@@ -86,7 +86,8 @@ def align_data(primary, data):
     return aligned_data
 
 
-def retrieve_aligned_data(max_limit):
+# TODO: figure out this scale function
+def retrieve_aligned_data(max_limit, scale='c'):
     print(f"Retrieving aligned data with limit {max_limit}")
 
     primary_sensor = 2  # tag:HARDCODE

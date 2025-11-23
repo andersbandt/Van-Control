@@ -8,9 +8,11 @@ import time
 
 from vc import fan
 from vc import gpio
+from vc.gpio import PINS
 from vc import ds1307
 from vc.vedirect import Vedirect
 from vc.display import display_control as dispc
+
 
 
 
@@ -30,6 +32,13 @@ def print_data_callback(packet):
 
 
 while True:
+    # test buzzer alarm
+    print("\n\nTESTING: buzzer")
+    gpio.gpio_out(PINS["buzzer"], 1)
+    time.sleep(5)
+    gpio.gpio_out(PINS["buzzer"], 0)
+
+    
     # test ve.direct from BMV-712
     print("\n\nTESTING: ve.direct for BMV-712")
     time.sleep(1)

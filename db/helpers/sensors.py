@@ -101,19 +101,20 @@ def get_timestamp_from_limit(sensor_id, limit):
 
 def get_stats(sensor_id, limit):
     query = """
-    SELECT 
+    SELECT
         MAX(temperature) AS high, 
         MIN(temperature) AS low, 
         AVG(temperature) AS mean,
         datetime(MAX(timestamp)) AS latest_time,
         datetime(MIN(timestamp)) AS earliest_time
     FROM (
-        SELECT * 
+    SELECT * 
         FROM sensor_data 
         WHERE sensor_id = ? 
         ORDER BY timestamp DESC 
         LIMIT ?
     )
+
     """
 
     with sqlite3.connect(DATABASE_DIRECTORY) as conn:

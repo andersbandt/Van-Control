@@ -1,4 +1,5 @@
 
+
 # @file     my_dht_11_lcd.py
 # @desc     a first attempt at making a smart RASPI system 
 
@@ -39,9 +40,6 @@ def main():
         # get battery statistics and update display
         battery_data = dbh.battery.get_battery_data()
 
-        import pprint
-        pprint.pprint(battery_data)
-        print("\nbattery data above!!\n")
 
         #        dispc.display_bat_out(
 #            battery_data['state_of_charge'],
@@ -54,7 +52,7 @@ def main():
         # get tempereature data and update display
         for i in range(0, 3): # TODO: eliminate this tag:HARDCODE
             data = dbh.sensors.get_data(i, 1)
-            dispc.display_temp_out(f"{i}", data[0][0]*1.8+32, data[0][1], data[0][2])
+            # dispc.display_temp_out(f"{i}", data[0][0]*1.8+32, data[0][1], data[0][2]) # TODO: fix the error about data type or something here
             time.sleep(3)
                 
 
