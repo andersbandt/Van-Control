@@ -1,7 +1,7 @@
 
 
 *.db
-
+db/financials.db
 
 
 __pycache__
