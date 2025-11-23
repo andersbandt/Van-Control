@@ -18,6 +18,14 @@ from analysis import data_helper as datah
 blueprint = Blueprint('routes', __name__, static_folder='static', template_folder='/templates')
 
 
+
+def c_to_f(celsius):
+    return celsius*1.8 + 32
+
+
+
+
+
 # site navigation stuff
 @blueprint.route('/')
 def home():
@@ -36,12 +44,12 @@ def automate():
 
 @blueprint.route('/data.html')
 def data_fetch():
-    max_limit = request.args.get('max_limit', default=500, type=int)
+    max_limit = request.args.get('max_limit', default=5000, type=int)
 
 
     # METHOD 1 (preferred): sensor alignment
     # Retrieve aligned data using your new alignment function
-    aligned_data = datah.retrieve_aligned_data(max_limit)
+    aligned_data = datah.retrieve_aligned_data(max_limit, scale='f') #scale=Fahrenheit
     
     # Process aligned data
     labels = [row["timestamp"] for row in aligned_data]
@@ -79,6 +87,7 @@ def data_fetch():
         })
 
     # Otherwise, return the HTML page with data rendered in Jinja
+    # TODO: actually get humidity data passed in here
     return render_template('data.html',
                            labels=labels,
                            data1_1=temp1,
@@ -119,10 +128,6 @@ def get_stats():
     max_limit = request.args.get('max_limit', default=5000, type=int)
     
     result = dbh.sensors.get_stats(sensor_id, max_limit)
-
-    def c_to_f(celsius):
-        return celsius*1.8 + 32
-
     
     # Calculate statistics
     # TODO: pass in data in both Celsius and Fahrenheit here

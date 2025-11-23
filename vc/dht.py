@@ -21,11 +21,16 @@ def check_dht(sensor_index):
     dht_device = dht_device_list[sensor_index]
 
     try:
-        temperature_c = dht_device.temperature
-        #timestamp = datetime.datetime.now()
-        ds1307rtc = ds1307.DS1307(i2c_bus_number=1, addr=0x68) # TODO; is turning this into an object really the best way to do this? Should I just make one instance and make that callable in a module?
-        timestamp = ds1307rtc.datetime
+        temperature_c = dht_device.temperature        
         humidity = dht_device.humidity
+
+        # METHOD1: using systime which MAY BE INACCURATE
+        timestamp = datetime.datetime.now()
+
+        # METHOD2: using external RTC (DS1307)
+        #ds1307rtc = ds1307.DS1307(i2c_bus_number=1, addr=0x68) # TODO; is turning this into an object really the best way to do this? Should I just make one instance and make that callable in a module?
+        #timestamp = ds1307rtc.datetime
+        
     except RuntimeError:
         return None
 

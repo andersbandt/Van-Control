@@ -25,6 +25,7 @@ class Vedirect:
     vid = 0x10C4
     pid = 0xEA60
 
+    
     def __init__(self, port=None, timeout=3):
         # establish port
         if port is None:
@@ -37,6 +38,7 @@ class Vedirect:
             self.ser = serial.Serial(self.serialport, 19200, timeout=timeout)
             print(f"VE.Direct connected at port {self.serialport} with a timeout of {timeout}\n")
         else:
+            print("Connect sequence for VE.Direct FAILED")
             self.ser = None
 
         # setup various other things
@@ -104,6 +106,8 @@ class Vedirect:
     # read_data_single: returns a single dict with a reading sample
     def read_data_single(self):
         if self.ser is not None:
+            self.ser.flush()
+        # perform read
             data = self.ser.read_until('\n')
             for single_byte in data:
                 packet = self.input(single_byte)
@@ -138,3 +142,5 @@ class Vedirect:
             print("ERROR: issue with ve.direct saving")
 
 
+    def flush_port(self):
+        self.ser.flush()

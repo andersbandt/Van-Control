@@ -33,6 +33,8 @@ PINS = {
     "dht_device2": board.D19,
     "dht_device3": board.D26,
 
+    # buzzer
+    "buzzer": 8,
     
     # ??? PIN CONNECTOR = button input
     # pins controlling mux module
@@ -51,7 +53,7 @@ PINS = {
         "relay_4": 18, # lift motor power
         "relay_5": 23,
         "relay_6": 24,
-        "relay_7": 25,
+        "relay_7": 24,
         "relay_8": 8,
     },
 
@@ -88,6 +90,7 @@ GPIO.setup(PINS["reed_2"], GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(PINS["reed_3"], GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # outputs
+GPIO.setup(PINS["buzzer"], GPIO.OUT, initial=GPIO.LOW)
 GPIO.setup(PINS["fan_lift_dpdt"], GPIO.OUT, initial=GPIO.LOW)
 GPIO.setup(PINS["fan_c1"], GPIO.OUT, initial=GPIO.LOW)
 GPIO.setup(PINS["fan_c2"], GPIO.OUT, initial=GPIO.LOW)
