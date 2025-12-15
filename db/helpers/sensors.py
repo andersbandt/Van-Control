@@ -1,7 +1,5 @@
 
 
-
-
 # import needed modules
 import sqlite3
 import datetime
@@ -13,6 +11,9 @@ from db import DATABASE_DIRECTORY
 from vc.classes.SensorEvent import SensorEvent
 
 
+##########################################################
+### data insertion
+##########################################################
 def insert_reading(sensor_event: SensorEvent) -> bool:
     with sqlite3.connect(DATABASE_DIRECTORY) as conn:
         cur = conn.cursor()
@@ -30,6 +31,9 @@ def insert_reading(sensor_event: SensorEvent) -> bool:
     return True
 
 
+##########################################################
+### data retrieval
+##########################################################
 # Function to query the database
 def get_data(sensor_id, limit):
     query = """
@@ -48,7 +52,6 @@ def get_data(sensor_id, limit):
         
         results = cur.fetchall()
         return results
-
 
 
 def get_data_from_time(sensor_id, timestamp_limit):
@@ -98,7 +101,6 @@ def get_timestamp_from_limit(sensor_id, limit):
         return None
     
 
-
 def get_stats(sensor_id, limit):
     query = """
     SELECT
@@ -124,6 +126,5 @@ def get_stats(sensor_id, limit):
         result = cur.fetchone()
         
         return dict(result) if result else None  # Converts sqlite3.Row to a Python dict
-
 
 

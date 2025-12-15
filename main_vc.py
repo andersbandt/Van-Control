@@ -20,15 +20,15 @@ from vc.display import display_control as dispc
 # main loop of program
 def main():
     ve = Vedirect(port=None, timeout=2)
+    lcd = dispc.Display()
+
 
     while True:
         print("\n")
-        
-        # TODO: check for disconnect cases to possibly reconnect with things like `ve`
 
         # read and log sensor data
         dht.update_all_dht()
-        ve.save_data_single()
+        ve.save_data_single()         # TODO: check for disconnect cases to possibly reconnect with things like `ve`
 
         # check control panel
 #        for i in range(1, 19):
@@ -49,16 +49,17 @@ def main():
         # timestamp=battery_data['timestamp']
 
 
-        # get tempereature data and update display
+        # get temperature data and update display
         for i in range(0, 3): # TODO: eliminate this tag:HARDCODE
             data = dbh.sensors.get_data(i, 1)
-            # dispc.display_temp_out(f"{i}", data[0][0]*1.8+32, data[0][1], data[0][2]) # TODO: fix the error about data type or something here
+            lcd.display_temp_out(f"{i}", data[0][1], data[0][2], data[0][0])
             time.sleep(3)
                 
 
         # main loop delay
         # TODO: need a way to bring this delay DOWN but still only log things like DHT sensor samples every 5 seconds ....
-        time.sleep(1)
+        #   the problem also gets complicated when I consider the delays I'm adding for
+        time.sleep(5)
 
 
 

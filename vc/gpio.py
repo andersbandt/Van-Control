@@ -29,9 +29,9 @@ PINS = {
     "ex6": 6,
 
     # 3 x 3 PIN CONNECTOR = dht temp/humidity sensors
-    "dht_device1": board.D13,
+    "dht_device1": board.D26,
     "dht_device2": board.D19,
-    "dht_device3": board.D26,
+    "dht_device3": board.D13,
 
     # buzzer
     "buzzer": 8,

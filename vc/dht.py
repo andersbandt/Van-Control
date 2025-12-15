@@ -24,7 +24,16 @@ def check_dht(sensor_index):
         temperature_c = dht_device.temperature        
         humidity = dht_device.humidity
 
-        # METHOD1: using systime which MAY BE INACCURATE
+        # add some calibration constant -- tag:HARDCODE
+        if sensor_index == 0:
+            temperature_c = temperature_c + 1.34
+            humidity = humidity - 11.4490
+        elif sensor_index == 1:
+            temperature_c = temperature_c - 0.5163
+            humidity = humidity - 3.0096
+
+        # TODO: make this dynamic based on wifi connection
+        # METHOD1: using systime which MAY BE INACCURATE if we lose wifi connection
         timestamp = datetime.datetime.now()
 
         # METHOD2: using external RTC (DS1307)
@@ -45,8 +54,11 @@ def update_all_dht():
         sensor_event = check_dht(i)
         if sensor_event is not None:
             sensor_event.print()
-            # handle logging to database
-            dbh.sensors.insert_reading(sensor_event)
+
+            # add some hard coded bounds to handle erroneous readings
+            if -45 < sensor_event.temperature < 85:
+                # handle logging to database
+                dbh.sensors.insert_reading(sensor_event)
         else:
             print(f"ERROR: can't read from sensor #{i}")
             

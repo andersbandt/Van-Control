@@ -108,8 +108,8 @@
 	  options: {
               responsive: true,
               title: {
-		  display: true,
-		  text: 'Temperature data from control center'
+		        display: true,
+		        text: 'Temperature data'
               },
               scales: {
 		  xAxes: [{
@@ -117,9 +117,10 @@
 			  maxTicksLimit: 20
 		      }
                   }],
-                  y: {
-                       max: 35
-                      }
+                  // removed max limit because I fixed erroneous outlier sensors
+                  //y: {
+                  //     max: 35
+                  //    }
             }
       }
       });
@@ -156,7 +157,7 @@
               plugins: {
 		  title: {
 		      display: true,
-		      text: 'Temperature data from control center'
+		      text: 'Humidity data'
 		  }
               },
               scales: {

@@ -53,26 +53,13 @@ def data_fetch():
     
     # Process aligned data
     labels = [row["timestamp"] for row in aligned_data]
-    temp1 = [row["temperatures"][0] for row in aligned_data]
-    temp2 = [row["temperatures"][1] for row in aligned_data]
-    temp3 = [row["temperatures"][2] for row in aligned_data]
+    temp1 = [row["temperature"][0] for row in aligned_data]
+    temp2 = [row["temperature"][1] for row in aligned_data]
+    temp3 = [row["temperature"][2] for row in aligned_data]
 
-
-    # METHOD 2 (old): just getting the same number from each sensor
-    #data = dbh.sensors.get_data(0, max_limit)
-    #temp1 = [row[0] for row in data]
-    #hum1 = [row[1] for row in data]
-    #labels = [row[2] for row in data]
-
-    #data = dbh.sensors.get_data(1, max_limit)
-    #temp2 = [row[0] for row in data]
-
-    #data = dbh.sensors.get_data(2, max_limit)
-    #temp3 = [row[0] for row in data]
-    
-        
-    # NOTE: Assuming you want to extend this logic to include humidity or other datasets,
-    # include those calculations here as required.
+    hum1 = [row["humidity"][0] for row in aligned_data]
+    hum2 = [row["humidity"][1] for row in aligned_data]
+    hum3 = [row["humidity"][2] for row in aligned_data]
 
     # If the request is an AJAX call, return JSON
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -81,21 +68,20 @@ def data_fetch():
             'data1_1': temp1,
             'data1_2': temp2,
             'data1_3': temp3,
-            'data2_1': temp1,
-            'data2_2': temp2,
-            'data2_3': temp3
+            'data2_1': hum1,
+            'data2_2': hum2,
+            'data2_3': hum3
         })
 
     # Otherwise, return the HTML page with data rendered in Jinja
-    # TODO: actually get humidity data passed in here
     return render_template('data.html',
                            labels=labels,
                            data1_1=temp1,
                            data1_2=temp2,
                            data1_3=temp3,
-                           data2_1=temp1,
-                           data2_2=temp2,
-                           data2_3=temp3)
+                           data2_1=hum1,
+                           data2_2=hum2,
+                           data2_3=hum3)
 
 
 @blueprint.route('/battery.html')

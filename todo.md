@@ -26,7 +26,7 @@
 
 4. [ ] add some "day" view, where I can toggle to view day by day or week by week
 
-5. [ ] strip out outliers in the graph view, maybe even don't even log them?
+5. [x] strip out outliers in the graph view, maybe even don't even log them?
 
 
 ### back-end (data anlalysis)
