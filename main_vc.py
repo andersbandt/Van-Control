@@ -62,7 +62,6 @@ def main():
         time.sleep(5)
 
 
-
 def db_init():
     """Create the database using the values of TableStatements."""
     from db import DATABASE_DIRECTORY, TableStatements, all_tables_init, populate_tables

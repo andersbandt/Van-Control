@@ -10,7 +10,7 @@
     <link rel="stylesheet" type="text/css" href="/static/css/chart_style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="/static/chart.js"></script>
-
+    <script src="static/data.js" defer></script>
   </head>
 
 
@@ -19,54 +19,58 @@
     <!-- NAVBAR (include via Jinja) -->
     {% include 'asset_navbar.html' %}
 
-
     <h2>Climate Control Zone</h2>
 
-
-    <!-- Slider to control max_limit -->
+    <!-- SLIDER CONTROLLER -->
     <label for="data-slider">Select Max Limit: <span id="slider-value">{{ max_limit }}</span></label>
     <input type="range" id="data-slider" min="100" max="10000" value="{{ max_limit }}" step="10">
 
+    <!-- DATE SELECTOR -->
+    <button id="day-prev">◀</button>
+    <input type="date" id="day-picker">
+    <button id="day-next">▶</button>
+    <span id="day-label"></span>
 
-
+    <!-- STATISTICS TABLE -->
     <h3>Sensor Statistics</h3>
     <div id="stats-container">
       <table>
-	<tr>
-	  <td><p><strong>High-00</strong> <span id="stat-high-0">Loading...</span></p></td>
-	  <td><p><strong>High-01</strong> <span id="stat-high-1">Loading...</span></p></td>
-	  <td><p><strong>High-02</strong> <span id="stat-high-2">Loading...</span></p></td>
-	</tr>
-	<tr>
-	  <td><p><strong>Low-00</strong> <span id="stat-low-0">Loading...</span></p></td>
-	  <td><p><strong>Low-01</strong> <span id="stat-low-1">Loading...</span></p></td>
-	  <td><p><strong>Low-02</strong> <span id="stat-low-2">Loading...</span></p></td>
-	</tr>
-	<tr>
-	  <td><p><strong>Mean-00</strong> <span id="stat-mean-0">Loading...</span></p></td>
-	  <td><p><strong>Mean-01</strong> <span id="stat-mean-1">Loading...</span></p></td>
-	  <td><p><strong>Mean-02</strong> <span id="stat-mean-2">Loading...</span></p></td>
-	</tr>
+	    <tr>
+	      <td><p><strong>High-00</strong> <span id="stat-high-0">Loading...</span></p></td>
+	      <td><p><strong>High-01</strong> <span id="stat-high-1">Loading...</span></p></td>
+	      <td><p><strong>High-02</strong> <span id="stat-high-2">Loading...</span></p></td>
+	    </tr>
+	    <tr>
+	      <td><p><strong>Low-00</strong> <span id="stat-low-0">Loading...</span></p></td>
+	      <td><p><strong>Low-01</strong> <span id="stat-low-1">Loading...</span></p></td>
+	      <td><p><strong>Low-02</strong> <span id="stat-low-2">Loading...</span></p></td>
+	    </tr>
+	    <tr>
+	      <td><p><strong>Mean-00</strong> <span id="stat-mean-0">Loading...</span></p></td>
+	      <td><p><strong>Mean-01</strong> <span id="stat-mean-1">Loading...</span></p></td>
+	      <td><p><strong>Mean-02</strong> <span id="stat-mean-2">Loading...</span></p></td>
+	    </tr>
       </table>
       
       <p><strong>Earliest time:</strong> <span id="stat-time-early">Loading...</span></p>
       <p><strong>Latest time:</strong> <span id="stat-time-late">Loading...</span></p>
     </div>
 
-
+    <!-- CHART 1 -->
     <div class="chartMenu">
       <div class="chartCard">
-	<div class="chartBox">
+	    <div class="chartBox">
           <canvas id="line-chart1"></canvas>
-	</div>
+	    </div>
       </div>
     </div>
 
+    <!-- CHART 2 -->
     <div class="chartMenu">
       <div class="chartCard">
-	<div class="chartBox">
+	    <div class="chartBox">
           <canvas id="line-chart2"></canvas>
-	</div>
+	    </div>
       </div>
     </div>
 
@@ -81,166 +85,109 @@
 
       // START - CHART
       const chart1 = new Chart(document.getElementById("line-chart1"), {
-	  type: 'line',
-	  data: {
+	      type: 'line',
+	      data: {
               labels: labels,
               datasets: [
-		  {
-		      data: data1_1,
-		      label: "Internal",
-		      borderColor: "#3e95cd",
-		      fill: false
-		  },
-		  {
-		      data: data1_2,
-		      label: "Living room",
-		      borderColor: "#c45850",
-		      fill: false
-		  },
-		  {
-		      data: data1_3,
-		      label: "Bedroom",
-		      borderColor: "#8fed9c",
-      fill: false
-		  }
+		          {
+		              data: data1_1,
+		              label: "Internal",
+		              borderColor: "#3e95cd",
+		              fill: false
+		          },
+		          {
+		              data: data1_2,
+		              label: "Living room",
+		              borderColor: "#c45850",
+		              fill: false
+		          },
+		          {
+		              data: data1_3,
+		              label: "Bedroom",
+		              borderColor: "#8fed9c",
+                      fill: false
+		          }
               ]
-	  },
-	  options: {
+	      },
+	      options: {
               responsive: true,
               title: {
-		        display: true,
-		        text: 'Temperature data'
+		          display: true,
+		          text: 'Temperature data'
               },
               scales: {
-		  xAxes: [{
-		      ticks: {
-			  maxTicksLimit: 20
-		      }
-                  }],
+		          x: {
+		              ticks: {
+			              maxTicksLimit: 20
+		              }
+                  },
                   // removed max limit because I fixed erroneous outlier sensors
                   //y: {
                   //     max: 35
                   //    }
-            }
-      }
+              }
+          }
       });
       // END - CHART
 
       // START - CHART
       const chart2 = new Chart(document.getElementById("line-chart2"), {
-	  type: 'line',
-	  data: {
+	      type: 'line',
+	      data: {
               labels: labels,
               datasets: [
-		  {
-		      data: data2_1,
-		      label: "Humidity 1",
-		      borderColor: "#381ecf",
-		      fill: false
-		  },
-		  {
-		      data: data2_2,
-		      label: "Humidity 2",
-		      borderColor: "#c23f23",
-		      fill: false
-		  },
-		  {
-		      data: data2_3,
-		      label: "Humidity 3",
-		      borderColor: "#15d363",
-		      fill: false
-		  }
+		          {
+		              data: data2_1,
+		              label: "Humidity 1",
+		              borderColor: "#381ecf",
+		              fill: false
+		          },
+		          {
+		              data: data2_2,
+		              label: "Humidity 2",
+		              borderColor: "#c23f23",
+		              fill: false
+		          },
+		          {
+		              data: data2_3,
+		              label: "Humidity 3",
+		              borderColor: "#15d363",
+		              fill: false
+		          }
               ]
-	  },
-	  options: {
+	      },
+	      options: {
               responsive: true,
               plugins: {
-		  title: {
-		      display: true,
-		      text: 'Humidity data'
-		  }
+		          title: {
+		              display: true,
+		              text: 'Humidity data'
+		          }
               },
               scales: {
-		  x: {
-		      ticks: {
-			  maxTicksLimit: 20
-		      }
-		  }
+		          x: {
+		              ticks: {
+			              maxTicksLimit: 20
+		              }
+		          }
               }
-	  }
+	      }
       });
       // END - CHART
 
-    </script>
 
+      // get reference to date picker
+      const dayPicker = document.getElementById('day-picker');
+      const dayPrev = document.getElementById('day-prev');
+      const dayNext = document.getElementById('day-next');
+      const dayLabel = document.getElementById('day-label');
 
-    <script>
+      let selectedDay = new Date();
+
       // Get references to the slider and the label
       const slider = document.getElementById('data-slider');
       const sliderValue = document.getElementById('slider-value');
       const dataContainer = document.getElementById('data-container');
-
-      // Update the value display when the slider changes
-      slider.addEventListener('input', function () {
-	  sliderValue.textContent = slider.value;
-      });
-
-      // Fetch new data when the slider stops being dragged
-      slider.addEventListener('change', function () {
-	  const maxLimit = slider.value;
-	  fetch(`/data.html?max_limit=${maxLimit}`, {
-              headers: { 'X-Requested-With': 'XMLHttpRequest' }
-	  })
-              .then(response => response.json())
-              .then(data => {
-		  // Assuming the server returns the new labels and data arrays
-		  chart1.data.labels = data.labels;
-		  chart1.data.datasets[0].data = data.data1_1;
-		  chart1.data.datasets[1].data = data.data1_2;
-		  chart1.data.datasets[2].data = data.data1_3;
-		  chart1.update();
-
-		  chart2.data.labels = data.labels;
-		  chart2.data.datasets[0].data = data.data2_1;
-		  chart2.data.datasets[1].data = data.data2_2;
-		  chart2.data.datasets[2].data = data.data2_3;
-		  chart2.update();
-              })
-              .catch(err => console.error('Error fetching data:', err));
-
-
-	  // Fetch and update statistics
-	  fetchStats(2, maxLimit);
-	  fetchStats(0, maxLimit);
-	  fetchStats(1, maxLimit);
-      });
-
-
-      // Statistics information
-      function fetchStats(sensorId, maxLimit) {
-	  fetch(`/stats?sensor_id=${sensorId}&max_limit=${maxLimit}`)
-              .then(response => response.json())
-              .then(stats => {
-		  document.getElementById(`stat-high-${sensorId}`).textContent = stats.high ?? 'N/A';
-		  document.getElementById(`stat-low-${sensorId}`).textContent = stats.low ?? 'N/A';
-		  document.getElementById(`stat-mean-${sensorId}`).textContent = stats.mean ?? 'N/A';
-		  document.getElementById(`stat-time-early`).textContent = stats.earliest_time ?? 'N/A';
-		  document.getElementById(`stat-time-late`).textContent = stats.latest_time ?? 'N/A';
-              })
-              .catch(error => console.error('Error fetching stats:', error));
-      }
-
-      // Fetch statistics on page load
-      window.addEventListener('DOMContentLoaded', () => {
-	  sliderValue.textContent = slider.value;
-	  const initialMaxLimit = slider.value || initialMaxLimit;  // Use the slider value on page load, default to 100
-	  fetchStats(0, initialMaxLimit);
-	  fetchStats(1, initialMaxLimit);
-	  fetchStats(2, initialMaxLimit);
-      });
-
     </script>
-
   </body>
-
 </html>

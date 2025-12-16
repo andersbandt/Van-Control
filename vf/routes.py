@@ -19,12 +19,6 @@ blueprint = Blueprint('routes', __name__, static_folder='static', template_folde
 
 
 
-def c_to_f(celsius):
-    return celsius*1.8 + 32
-
-
-
-
 
 # site navigation stuff
 @blueprint.route('/')
@@ -110,13 +104,16 @@ def control():
 ###############################################
 @blueprint.route('/stats', methods=['GET'])
 def get_stats():
+    def c_to_f(celsius):
+        return celsius * 1.8 + 32
+
     sensor_id = request.args.get('sensor_id', default=0, type=int)
     max_limit = request.args.get('max_limit', default=5000, type=int)
     
     result = dbh.sensors.get_stats(sensor_id, max_limit)
     
     # Calculate statistics
-    # TODO: pass in data in both Celsius and Fahrenheit here
+    # TODO: pass in data in both Celsius and Fahrenheit here. Can have a drop down on the main page?
     stats = {
         'high': c_to_f(result['high']),
         'low': c_to_f(result['low']),

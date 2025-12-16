@@ -3,6 +3,7 @@
 
 ## to do items
 
+- [ ] in `data.html` let's split out all the JS stuff for cleanliness
 
 
 ### front-end
@@ -15,13 +16,12 @@
    
 2. [x] add some statistics table
    - [x] and other things like recent lows and highs over a certain day period
-   - [ ] with data in both C and F
-   - [ ] add multiple sensors
-   - [ ] add humidity
-
+   - [] with data in both C and F
+   - [x] add multiple sensors
+   - [] add humidity
 
    
-3. [ ] fix the ticks on the graph. Have them be more readable and less of them
+3. [x] fix the ticks on the graph. Have them be more readable and less of them
 
 
 4. [ ] add some "day" view, where I can toggle to view day by day or week by week
