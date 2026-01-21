@@ -325,43 +325,99 @@ a:after {
 li:first-child a:after {
   display: none;
 }
-@media screen 
-
-and (max-width: 768px) {
+@media screen and (max-width: 768px) {
   #cssmenu ul li {
-    float: 
-
-none;
+    float: none;
     display: block;
   }
   #cssmenu ul li a {
-    width: 
-
-100%;
+    width: 100%;
     -moz-box-sizing: border-box;
-    -webkit-box-
-
-sizing: border-box;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
-    
-
-border-bottom: 1px solid #fb998c;
+    border-bottom: 1px solid #fb998c;
   }
-  #cssmenu ul li.last 
-
-> a,
+  #cssmenu ul li.last > a,
   #cssmenu ul li:last-child > a {
     border: 0;
   }
-  
-
-#cssmenu ul li a:after {
+  #cssmenu ul li a:after {
     display: none;
   }
-  #cssmenu 
-
-ul li a:before {
+  #cssmenu ul li a:before {
     display: none;
+  }
+
+  /* Mobile-friendly typography */
+  h1 {
+    font-size: 40px;
+    text-align: center;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  h2 {
+    font-size: 32px;
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+
+  h3 {
+    font-size: 24px;
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+
+  #heading {
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+
+  #date {
+    margin-left: 20px;
+  }
+
+  /* Mobile-friendly tables */
+  table {
+    width: 100%;
+    font-size: 14px;
+    overflow-x: auto;
+    display: block;
+  }
+
+  td, th {
+    padding: 0.3rem;
+    font-size: 12px;
+  }
+
+  /* Mobile-friendly controls */
+  #data-slider {
+    width: 90%;
+    margin: 10px auto;
+    display: block;
+  }
+
+  label[for="data-slider"] {
+    display: block;
+    text-align: center;
+    margin: 10px 0;
+  }
+
+  #day-picker,
+  #day-prev,
+  #day-next {
+    margin: 5px;
+  }
+
+  /* Stats container */
+  #stats-container {
+    margin: 10px;
+    overflow-x: auto;
+  }
+
+  .bodytext {
+    margin-left: 20px;
+    margin-right: 20px;
   }
 }
 
