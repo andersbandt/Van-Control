@@ -102,6 +102,7 @@ def control():
 ###############################################
 ###########    API data stuff      ############
 ###############################################
+# TODO: pass in data in both Celsius and Fahrenheit here. Can have a drop down on the main page?
 @blueprint.route('/stats', methods=['GET'])
 def get_stats():
     def c_to_f(celsius):
@@ -113,13 +114,12 @@ def get_stats():
     result = dbh.sensors.get_stats(sensor_id, max_limit)
     
     # Calculate statistics
-    # TODO: pass in data in both Celsius and Fahrenheit here. Can have a drop down on the main page?
     stats = {
-        'high': c_to_f(result['high']),
-        'low': c_to_f(result['low']),
-        'mean': c_to_f(round(result['mean'], 2)),
+        'high': round(c_to_f(result['high']), 2),
+        'low': round(c_to_f(result['low']), 2),
+        'mean': round(c_to_f(result['mean']), 2),
         'earliest_time': result['earliest_time'],
-        'latest_time': result['latest_time']
+        'latest_time': result['latest_time'],
     }
 
     # Return stats as JSON for AJAX to consume

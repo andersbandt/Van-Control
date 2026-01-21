@@ -1,35 +1,17 @@
 
 
+### TODO items
 
-## to do items
+ 
+- [ ] add some "day" view, where I can toggle to view day by day or week by week
+- [ ] add some feature where I can also toggle the sensors to display
 
-- [ ] in `data.html` let's split out all the JS stuff for cleanliness
+- add some statistics table
+   - [ ] with data in both C and F in a drop down
+   - [ ] add humidity
+   - [ ] add some other cool stats --> (swing, stddeviation, etc?)
 
+- [ ] still need to fix outliers
+- [ ] spend just a little more time viewing chart.js options (ticks, axis, labels, etc)
 
-### front-end
-
-
-1. [x] add slider to temperature page to adjust time duration.
-   - [ ] make the slider more intuitive (report in number of days)
-   - [ ] have the display be better of what value we are on
-
-   
-2. [x] add some statistics table
-   - [x] and other things like recent lows and highs over a certain day period
-   - [] with data in both C and F
-   - [x] add multiple sensors
-   - [] add humidity
-
-   
-3. [x] fix the ticks on the graph. Have them be more readable and less of them
-
-
-4. [ ] add some "day" view, where I can toggle to view day by day or week by week
-
-5. [x] strip out outliers in the graph view, maybe even don't even log them?
-
-
-### back-end (data anlalysis)
-
-1. [x] what are methods I can use to align datapoints from sensors?
 
