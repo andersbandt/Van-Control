@@ -61,9 +61,9 @@ def get_data_from_time(sensor_id, timestamp_limit):
     print("Executing get_data_from_time...")
 
     query = """
-        SELECT timestamp, temperature, humidity 
-        FROM sensor_data 
-        WHERE sensor_id = ? 
+        SELECT timestamp, temperature, humidity
+        FROM sensor_data
+        WHERE sensor_id = ?
           AND timestamp >= ?
         ORDER BY timestamp DESC
     """
@@ -72,6 +72,36 @@ def get_data_from_time(sensor_id, timestamp_limit):
         cur.execute(query, (sensor_id, timestamp_limit))
         rows = cur.fetchall()
         print("Fetched data successfully.")
+        return rows
+
+
+def get_data_by_date_range(sensor_id, start_datetime, end_datetime):
+    """
+    Fetch data from the sensor_data table within a date range.
+
+    Args:
+        sensor_id (int): The sensor ID
+        start_datetime (str): Start datetime in 'YYYY-MM-DD HH:MM:SS' format
+        end_datetime (str): End datetime in 'YYYY-MM-DD HH:MM:SS' format
+
+    Returns:
+        list: List of (timestamp, temperature, humidity) tuples
+    """
+    print(f"Executing get_data_by_date_range for sensor {sensor_id}...")
+
+    query = """
+        SELECT timestamp, temperature, humidity
+        FROM sensor_data
+        WHERE sensor_id = ?
+          AND timestamp >= ?
+          AND timestamp <= ?
+        ORDER BY timestamp ASC
+    """
+    with sqlite3.connect(DATABASE_DIRECTORY) as conn:
+        cur = conn.cursor()
+        cur.execute(query, (sensor_id, start_datetime, end_datetime))
+        rows = cur.fetchall()
+        print(f"Fetched {len(rows)} records successfully.")
         return rows
 
 
@@ -104,16 +134,16 @@ def get_timestamp_from_limit(sensor_id, limit):
 def get_stats(sensor_id, limit):
     query = """
     SELECT
-        MAX(temperature) AS high, 
-        MIN(temperature) AS low, 
+        MAX(temperature) AS high,
+        MIN(temperature) AS low,
         AVG(temperature) AS mean,
         datetime(MAX(timestamp)) AS latest_time,
         datetime(MIN(timestamp)) AS earliest_time
     FROM (
-    SELECT * 
-        FROM sensor_data 
-        WHERE sensor_id = ? 
-        ORDER BY timestamp DESC 
+    SELECT *
+        FROM sensor_data
+        WHERE sensor_id = ?
+        ORDER BY timestamp DESC
         LIMIT ?
     )
 
@@ -124,7 +154,41 @@ def get_stats(sensor_id, limit):
         cur = conn.cursor()
         cur.execute(query, (sensor_id, limit))
         result = cur.fetchone()
-        
+
         return dict(result) if result else None  # Converts sqlite3.Row to a Python dict
+
+
+def get_stats_by_date_range(sensor_id, start_datetime, end_datetime):
+    """
+    Get statistics for a sensor within a date range.
+
+    Args:
+        sensor_id (int): The sensor ID
+        start_datetime (str): Start datetime in 'YYYY-MM-DD HH:MM:SS' format
+        end_datetime (str): End datetime in 'YYYY-MM-DD HH:MM:SS' format
+
+    Returns:
+        dict: Statistics including high, low, mean, earliest_time, latest_time
+    """
+    query = """
+    SELECT
+        MAX(temperature) AS high,
+        MIN(temperature) AS low,
+        AVG(temperature) AS mean,
+        datetime(MAX(timestamp)) AS latest_time,
+        datetime(MIN(timestamp)) AS earliest_time
+    FROM sensor_data
+    WHERE sensor_id = ?
+      AND timestamp >= ?
+      AND timestamp <= ?
+    """
+
+    with sqlite3.connect(DATABASE_DIRECTORY) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(query, (sensor_id, start_datetime, end_datetime))
+        result = cur.fetchone()
+
+        return dict(result) if result else None
 
 

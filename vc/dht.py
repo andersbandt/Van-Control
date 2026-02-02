@@ -15,6 +15,41 @@ dht_device3 = adafruit_dht.DHT22(PINS["dht_device3"], use_pulseio=False)
 
 dht_device_list = [dht_device1, dht_device2, dht_device3]
 
+# Store last valid readings for outlier detection
+# Format: {sensor_index: {'temperature': float, 'humidity': float}}
+last_valid_readings = {}
+
+# Outlier detection thresholds - tag:HARDCODE
+MAX_TEMP_CHANGE = 10.0  # Maximum degrees C change per reading cycle
+MAX_HUMIDITY_CHANGE = 20.0  # Maximum % humidity change per reading cycle
+
+
+def is_valid_reading(sensor_index, temperature, humidity):
+    """
+    Check if a sensor reading is valid by comparing rate of change
+    against the last valid reading for this sensor.
+
+    Returns: (is_valid: bool, reason: str)
+    """
+    # First reading for this sensor is always considered valid
+    if sensor_index not in last_valid_readings:
+        return True, "First reading"
+
+    last_temp = last_valid_readings[sensor_index]['temperature']
+    last_humidity = last_valid_readings[sensor_index]['humidity']
+
+    temp_change = abs(temperature - last_temp)
+    humidity_change = abs(humidity - last_humidity)
+
+    # Check temperature change
+    if temp_change > MAX_TEMP_CHANGE:
+        return False, f"Temperature spike: {temp_change:.1f}°C change (limit: {MAX_TEMP_CHANGE}°C)"
+
+    # Check humidity change
+    if humidity_change > MAX_HUMIDITY_CHANGE:
+        return False, f"Humidity spike: {humidity_change:.1f}% change (limit: {MAX_HUMIDITY_CHANGE}%)"
+
+    return True, "Valid"
 
 
 def check_dht(sensor_index):
@@ -57,8 +92,23 @@ def update_all_dht():
 
             # add some hard coded bounds to handle erroneous readings
             if -45 < sensor_event.temperature < 85:
-                # handle logging to database
-                dbh.sensors.insert_reading(sensor_event)
+                # Check for outliers using rate-of-change validation
+                is_valid, reason = is_valid_reading(i, sensor_event.temperature, sensor_event.humidity)
+
+                if is_valid:
+                    # Update last valid reading
+                    last_valid_readings[i] = {
+                        'temperature': sensor_event.temperature,
+                        'humidity': sensor_event.humidity
+                    }
+                    # handle logging to database
+                    dbh.sensors.insert_reading(sensor_event)
+                else:
+                    # Outlier detected - skip and log warning
+                    print(f"WARNING: Outlier detected for sensor #{i}: {reason}")
+                    print(f"  Rejected: T={sensor_event.temperature:.1f}°C, H={sensor_event.humidity:.1f}%")
+                    if i in last_valid_readings:
+                        print(f"  Previous: T={last_valid_readings[i]['temperature']:.1f}°C, H={last_valid_readings[i]['humidity']:.1f}%")
         else:
             print(f"ERROR: can't read from sensor #{i}")
             

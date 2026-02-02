@@ -39,12 +39,17 @@ def automate():
 @blueprint.route('/data.html')
 def data_fetch():
     max_limit = request.args.get('max_limit', default=5000, type=int)
+    start_date = request.args.get('start_date', default=None, type=str)
+    end_date = request.args.get('end_date', default=None, type=str)
 
+    # Check if date range is provided
+    if start_date and end_date:
+        # Use date-based retrieval
+        aligned_data = datah.retrieve_aligned_data_by_date(start_date, end_date, scale='f')
+    else:
+        # Use limit-based retrieval (original behavior)
+        aligned_data = datah.retrieve_aligned_data(max_limit, scale='f')
 
-    # METHOD 1 (preferred): sensor alignment
-    # Retrieve aligned data using your new alignment function
-    aligned_data = datah.retrieve_aligned_data(max_limit, scale='f') #scale=Fahrenheit
-    
     # Process aligned data
     labels = [row["timestamp"] for row in aligned_data]
     temp1 = [row["temperature"][0] for row in aligned_data]
@@ -75,7 +80,8 @@ def data_fetch():
                            data1_3=temp3,
                            data2_1=hum1,
                            data2_2=hum2,
-                           data2_3=hum3)
+                           data2_3=hum3,
+                           max_limit=max_limit)
 
 
 @blueprint.route('/battery.html')
@@ -110,14 +116,22 @@ def get_stats():
 
     sensor_id = request.args.get('sensor_id', default=0, type=int)
     max_limit = request.args.get('max_limit', default=5000, type=int)
-    
-    result = dbh.sensors.get_stats(sensor_id, max_limit)
-    
+    start_date = request.args.get('start_date', default=None, type=str)
+    end_date = request.args.get('end_date', default=None, type=str)
+
+    # Check if date range is provided
+    if start_date and end_date:
+        start_datetime = f"{start_date} 00:00:00"
+        end_datetime = f"{end_date} 23:59:59"
+        result = dbh.sensors.get_stats_by_date_range(sensor_id, start_datetime, end_datetime)
+    else:
+        result = dbh.sensors.get_stats(sensor_id, max_limit)
+
     # Calculate statistics
     stats = {
-        'high': round(c_to_f(result['high']), 2),
-        'low': round(c_to_f(result['low']), 2),
-        'mean': round(c_to_f(result['mean']), 2),
+        'high': round(c_to_f(result['high']), 2) if result['high'] is not None else 'N/A',
+        'low': round(c_to_f(result['low']), 2) if result['low'] is not None else 'N/A',
+        'mean': round(c_to_f(result['mean']), 2) if result['mean'] is not None else 'N/A',
         'earliest_time': result['earliest_time'],
         'latest_time': result['latest_time'],
     }

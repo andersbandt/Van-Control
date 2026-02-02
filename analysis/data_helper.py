@@ -125,3 +125,59 @@ def retrieve_aligned_data(max_limit, scale='c'):
             ]
 
     return aligned_data
+
+
+def retrieve_aligned_data_by_date(start_date, end_date, scale='c'):
+    """
+    Retrieve aligned sensor data for a specific date range.
+
+    Args:
+        start_date (str): Start date in 'YYYY-MM-DD' format
+        end_date (str): End date in 'YYYY-MM-DD' format
+        scale (str): Temperature scale ('c' or 'f')
+
+    Returns:
+        list: Aligned sensor data for the date range
+    """
+    print(f"Retrieving aligned data from {start_date} to {end_date}")
+
+    primary_sensor = 2  # tag:HARDCODE
+
+    # Convert dates to datetime format for SQL query
+    start_datetime = f"{start_date} 00:00:00"
+    end_datetime = f"{end_date} 23:59:59"
+
+    # Get the raw data for each sensor using date range
+    raw_data0 = dbh.sensors.get_data_by_date_range(0, start_datetime, end_datetime)
+    raw_data1 = dbh.sensors.get_data_by_date_range(1, start_datetime, end_datetime)
+    raw_data2 = dbh.sensors.get_data_by_date_range(2, start_datetime, end_datetime)
+
+    # Convert raw data to dictionary format
+    def process_raw_data(raw_data):
+        return {
+            "timestamp": [row[0] for row in raw_data],
+            "temperature": [float(row[1]) for row in raw_data],
+            "humidity": [float(row[2]) for row in raw_data]
+        }
+
+    data = [
+        process_raw_data(raw_data0),
+        process_raw_data(raw_data1),
+        process_raw_data(raw_data2),
+    ]
+
+    # Align the data
+    aligned_data = align_data(primary_sensor, data)
+
+    # ---- temperature scaling ----
+    scale = scale.lower()
+    if scale not in ("c", "f"):
+        raise ValueError("scale must be 'c' or 'f'")
+
+    if scale == "f":
+        for sensor in aligned_data:
+            sensor["temperature"] = [
+                (t * 9.0 / 5.0) + 32.0 for t in sensor["temperature"]
+            ]
+
+    return aligned_data
