@@ -31,27 +31,78 @@
     <button id="day-next">▶</button>
     <span id="day-label"></span>
 
-    <!-- STATISTICS TABLE -->
-    <h3>Sensor Statistics</h3>
-    <div id="stats-container">
+    <!-- SENSOR VISIBILITY CONTROLS -->
+    <div class="control-section">
+      <h3>Sensor Visibility</h3>
+      <label><input type="checkbox" id="sensor-0" checked> Internal (Sensor 0)</label>
+      <label><input type="checkbox" id="sensor-1" checked> Living Room (Sensor 1)</label>
+      <label><input type="checkbox" id="sensor-2" checked> Bedroom (Sensor 2)</label>
+    </div>
+
+    <!-- TEMPERATURE SCALE TOGGLE -->
+    <div class="control-section">
+      <h3>Temperature Scale</h3>
+      <label><input type="radio" name="temp-scale" value="f" checked> Fahrenheit</label>
+      <label><input type="radio" name="temp-scale" value="c"> Celsius</label>
+    </div>
+
+    <!-- TEMPERATURE STATISTICS TABLE -->
+    <h3>Temperature Statistics</h3>
+    <div id="temp-stats-container">
       <table>
 	    <tr>
-	      <td><p><strong>High-00</strong> <span id="stat-high-0">Loading...</span></p></td>
-	      <td><p><strong>High-01</strong> <span id="stat-high-1">Loading...</span></p></td>
-	      <td><p><strong>High-02</strong> <span id="stat-high-2">Loading...</span></p></td>
+	      <td><p><strong>High-00</strong> <span id="stat-temp-high-0">Loading...</span></p></td>
+	      <td><p><strong>High-01</strong> <span id="stat-temp-high-1">Loading...</span></p></td>
+	      <td><p><strong>High-02</strong> <span id="stat-temp-high-2">Loading...</span></p></td>
 	    </tr>
 	    <tr>
-	      <td><p><strong>Low-00</strong> <span id="stat-low-0">Loading...</span></p></td>
-	      <td><p><strong>Low-01</strong> <span id="stat-low-1">Loading...</span></p></td>
-	      <td><p><strong>Low-02</strong> <span id="stat-low-2">Loading...</span></p></td>
+	      <td><p><strong>Low-00</strong> <span id="stat-temp-low-0">Loading...</span></p></td>
+	      <td><p><strong>Low-01</strong> <span id="stat-temp-low-1">Loading...</span></p></td>
+	      <td><p><strong>Low-02</strong> <span id="stat-temp-low-2">Loading...</span></p></td>
 	    </tr>
 	    <tr>
-	      <td><p><strong>Mean-00</strong> <span id="stat-mean-0">Loading...</span></p></td>
-	      <td><p><strong>Mean-01</strong> <span id="stat-mean-1">Loading...</span></p></td>
-	      <td><p><strong>Mean-02</strong> <span id="stat-mean-2">Loading...</span></p></td>
+	      <td><p><strong>Mean-00</strong> <span id="stat-temp-mean-0">Loading...</span></p></td>
+	      <td><p><strong>Mean-01</strong> <span id="stat-temp-mean-1">Loading...</span></p></td>
+	      <td><p><strong>Mean-02</strong> <span id="stat-temp-mean-2">Loading...</span></p></td>
+	    </tr>
+	    <tr>
+	      <td><p><strong>StdDev-00</strong> <span id="stat-temp-stddev-0">Loading...</span></p></td>
+	      <td><p><strong>StdDev-01</strong> <span id="stat-temp-stddev-1">Loading...</span></p></td>
+	      <td><p><strong>StdDev-02</strong> <span id="stat-temp-stddev-2">Loading...</span></p></td>
 	    </tr>
       </table>
-      
+    </div>
+
+    <!-- HUMIDITY STATISTICS TABLE -->
+    <h3>Humidity Statistics</h3>
+    <div id="hum-stats-container">
+      <table>
+	    <tr>
+	      <td><p><strong>High-00</strong> <span id="stat-hum-high-0">Loading...</span></p></td>
+	      <td><p><strong>High-01</strong> <span id="stat-hum-high-1">Loading...</span></p></td>
+	      <td><p><strong>High-02</strong> <span id="stat-hum-high-2">Loading...</span></p></td>
+	    </tr>
+	    <tr>
+	      <td><p><strong>Low-00</strong> <span id="stat-hum-low-0">Loading...</span></p></td>
+	      <td><p><strong>Low-01</strong> <span id="stat-hum-low-1">Loading...</span></p></td>
+	      <td><p><strong>Low-02</strong> <span id="stat-hum-low-2">Loading...</span></p></td>
+	    </tr>
+	    <tr>
+	      <td><p><strong>Mean-00</strong> <span id="stat-hum-mean-0">Loading...</span></p></td>
+	      <td><p><strong>Mean-01</strong> <span id="stat-hum-mean-1">Loading...</span></p></td>
+	      <td><p><strong>Mean-02</strong> <span id="stat-hum-mean-2">Loading...</span></p></td>
+	    </tr>
+	    <tr>
+	      <td><p><strong>StdDev-00</strong> <span id="stat-hum-stddev-0">Loading...</span></p></td>
+	      <td><p><strong>StdDev-01</strong> <span id="stat-hum-stddev-1">Loading...</span></p></td>
+	      <td><p><strong>StdDev-02</strong> <span id="stat-hum-stddev-2">Loading...</span></p></td>
+	    </tr>
+      </table>
+    </div>
+
+    <!-- GENERAL STATISTICS -->
+    <div id="general-stats">
+      <p><strong>Sample Count:</strong> <span id="stat-count">Loading...</span></p>
       <p><strong>Earliest time:</strong> <span id="stat-time-early">Loading...</span></p>
       <p><strong>Latest time:</strong> <span id="stat-time-late">Loading...</span></p>
     </div>

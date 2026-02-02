@@ -95,7 +95,7 @@ def get_data_by_date_range(sensor_id, start_datetime, end_datetime):
         WHERE sensor_id = ?
           AND timestamp >= ?
           AND timestamp <= ?
-        ORDER BY timestamp ASC
+        ORDER BY timestamp DESC
     """
     with sqlite3.connect(DATABASE_DIRECTORY) as conn:
         cur = conn.cursor()
@@ -134,28 +134,56 @@ def get_timestamp_from_limit(sensor_id, limit):
 def get_stats(sensor_id, limit):
     query = """
     SELECT
-        MAX(temperature) AS high,
-        MIN(temperature) AS low,
-        AVG(temperature) AS mean,
+        MAX(temperature) AS temp_high,
+        MIN(temperature) AS temp_low,
+        AVG(temperature) AS temp_mean,
+        MAX(humidity) AS hum_high,
+        MIN(humidity) AS hum_low,
+        AVG(humidity) AS hum_mean,
         datetime(MAX(timestamp)) AS latest_time,
-        datetime(MIN(timestamp)) AS earliest_time
+        datetime(MIN(timestamp)) AS earliest_time,
+        COUNT(*) AS count
     FROM (
-    SELECT *
+        SELECT *
         FROM sensor_data
         WHERE sensor_id = ?
         ORDER BY timestamp DESC
         LIMIT ?
     )
-
     """
 
     with sqlite3.connect(DATABASE_DIRECTORY) as conn:
-        conn.row_factory = sqlite3.Row  # Ensures rows are returned as dictionaries
+        conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         cur.execute(query, (sensor_id, limit))
         result = cur.fetchone()
 
-        return dict(result) if result else None  # Converts sqlite3.Row to a Python dict
+        if not result:
+            return None
+
+        # Calculate standard deviation manually (SQLite doesn't have built-in STDDEV)
+        stddev_query = """
+        SELECT
+            SQRT(AVG(temperature * temperature) - AVG(temperature) * AVG(temperature)) AS temp_stddev,
+            SQRT(AVG(humidity * humidity) - AVG(humidity) * AVG(humidity)) AS hum_stddev
+        FROM (
+            SELECT temperature, humidity
+            FROM sensor_data
+            WHERE sensor_id = ?
+            ORDER BY timestamp DESC
+            LIMIT ?
+        )
+        """
+        cur.execute(stddev_query, (sensor_id, limit))
+        stddev_result = cur.fetchone()
+
+        # Combine results
+        stats = dict(result)
+        if stddev_result:
+            stats['temp_stddev'] = stddev_result['temp_stddev']
+            stats['hum_stddev'] = stddev_result['hum_stddev']
+
+        return stats  # Converts sqlite3.Row to a Python dict
 
 
 def get_stats_by_date_range(sensor_id, start_datetime, end_datetime):
@@ -168,15 +196,19 @@ def get_stats_by_date_range(sensor_id, start_datetime, end_datetime):
         end_datetime (str): End datetime in 'YYYY-MM-DD HH:MM:SS' format
 
     Returns:
-        dict: Statistics including high, low, mean, earliest_time, latest_time
+        dict: Statistics including high, low, mean, stddev for both temp and humidity
     """
     query = """
     SELECT
-        MAX(temperature) AS high,
-        MIN(temperature) AS low,
-        AVG(temperature) AS mean,
+        MAX(temperature) AS temp_high,
+        MIN(temperature) AS temp_low,
+        AVG(temperature) AS temp_mean,
+        MAX(humidity) AS hum_high,
+        MIN(humidity) AS hum_low,
+        AVG(humidity) AS hum_mean,
         datetime(MAX(timestamp)) AS latest_time,
-        datetime(MIN(timestamp)) AS earliest_time
+        datetime(MIN(timestamp)) AS earliest_time,
+        COUNT(*) AS count
     FROM sensor_data
     WHERE sensor_id = ?
       AND timestamp >= ?
@@ -189,6 +221,28 @@ def get_stats_by_date_range(sensor_id, start_datetime, end_datetime):
         cur.execute(query, (sensor_id, start_datetime, end_datetime))
         result = cur.fetchone()
 
-        return dict(result) if result else None
+        if not result:
+            return None
+
+        # Calculate standard deviation manually
+        stddev_query = """
+        SELECT
+            SQRT(AVG(temperature * temperature) - AVG(temperature) * AVG(temperature)) AS temp_stddev,
+            SQRT(AVG(humidity * humidity) - AVG(humidity) * AVG(humidity)) AS hum_stddev
+        FROM sensor_data
+        WHERE sensor_id = ?
+          AND timestamp >= ?
+          AND timestamp <= ?
+        """
+        cur.execute(stddev_query, (sensor_id, start_datetime, end_datetime))
+        stddev_result = cur.fetchone()
+
+        # Combine results
+        stats = dict(result)
+        if stddev_result:
+            stats['temp_stddev'] = stddev_result['temp_stddev']
+            stats['hum_stddev'] = stddev_result['hum_stddev']
+
+        return stats
 
 

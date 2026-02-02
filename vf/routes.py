@@ -41,14 +41,15 @@ def data_fetch():
     max_limit = request.args.get('max_limit', default=5000, type=int)
     start_date = request.args.get('start_date', default=None, type=str)
     end_date = request.args.get('end_date', default=None, type=str)
+    scale = request.args.get('scale', default='f', type=str)
 
     # Check if date range is provided
     if start_date and end_date:
         # Use date-based retrieval
-        aligned_data = datah.retrieve_aligned_data_by_date(start_date, end_date, scale='f')
+        aligned_data = datah.retrieve_aligned_data_by_date(start_date, end_date, scale=scale)
     else:
         # Use limit-based retrieval (original behavior)
-        aligned_data = datah.retrieve_aligned_data(max_limit, scale='f')
+        aligned_data = datah.retrieve_aligned_data(max_limit, scale=scale)
 
     # Process aligned data
     labels = [row["timestamp"] for row in aligned_data]
@@ -118,6 +119,7 @@ def get_stats():
     max_limit = request.args.get('max_limit', default=5000, type=int)
     start_date = request.args.get('start_date', default=None, type=str)
     end_date = request.args.get('end_date', default=None, type=str)
+    scale = request.args.get('scale', default='f', type=str)
 
     # Check if date range is provided
     if start_date and end_date:
@@ -127,14 +129,35 @@ def get_stats():
     else:
         result = dbh.sensors.get_stats(sensor_id, max_limit)
 
-    # Calculate statistics
-    stats = {
-        'high': round(c_to_f(result['high']), 2) if result['high'] is not None else 'N/A',
-        'low': round(c_to_f(result['low']), 2) if result['low'] is not None else 'N/A',
-        'mean': round(c_to_f(result['mean']), 2) if result['mean'] is not None else 'N/A',
-        'earliest_time': result['earliest_time'],
-        'latest_time': result['latest_time'],
-    }
+    # Apply temperature conversion based on scale
+    if scale.lower() == 'f':
+        stats = {
+            'temp_high': round(c_to_f(result['temp_high']), 2) if result['temp_high'] is not None else 'N/A',
+            'temp_low': round(c_to_f(result['temp_low']), 2) if result['temp_low'] is not None else 'N/A',
+            'temp_mean': round(c_to_f(result['temp_mean']), 2) if result['temp_mean'] is not None else 'N/A',
+            'temp_stddev': round(c_to_f(result['temp_stddev']) if result['temp_stddev'] else 0, 2) if result['temp_stddev'] is not None else 'N/A',
+            'hum_high': round(result['hum_high'], 2) if result['hum_high'] is not None else 'N/A',
+            'hum_low': round(result['hum_low'], 2) if result['hum_low'] is not None else 'N/A',
+            'hum_mean': round(result['hum_mean'], 2) if result['hum_mean'] is not None else 'N/A',
+            'hum_stddev': round(result['hum_stddev'], 2) if result['hum_stddev'] is not None else 'N/A',
+            'count': result['count'],
+            'earliest_time': result['earliest_time'],
+            'latest_time': result['latest_time'],
+        }
+    else:  # Celsius
+        stats = {
+            'temp_high': round(result['temp_high'], 2) if result['temp_high'] is not None else 'N/A',
+            'temp_low': round(result['temp_low'], 2) if result['temp_low'] is not None else 'N/A',
+            'temp_mean': round(result['temp_mean'], 2) if result['temp_mean'] is not None else 'N/A',
+            'temp_stddev': round(result['temp_stddev'], 2) if result['temp_stddev'] is not None else 'N/A',
+            'hum_high': round(result['hum_high'], 2) if result['hum_high'] is not None else 'N/A',
+            'hum_low': round(result['hum_low'], 2) if result['hum_low'] is not None else 'N/A',
+            'hum_mean': round(result['hum_mean'], 2) if result['hum_mean'] is not None else 'N/A',
+            'hum_stddev': round(result['hum_stddev'], 2) if result['hum_stddev'] is not None else 'N/A',
+            'count': result['count'],
+            'earliest_time': result['earliest_time'],
+            'latest_time': result['latest_time'],
+        }
 
     # Return stats as JSON for AJAX to consume
     return jsonify(stats)
