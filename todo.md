@@ -3,15 +3,17 @@
 ### TODO items
 
  
-- [ ] add some "day" view, where I can toggle to view day by day or week by week
-- [ ] add some feature where I can also toggle the sensors to display
+
+- formatting
+  - [ ] charts still need to be mobile friendly
+  
+
 
 - add some statistics table
-   - [ ] with data in both C and F in a drop down
-   - [ ] add humidity
-   - [ ] add some other cool stats --> (swing, stddeviation, etc?)
+  - [ ] standard deviation might not be getting calculatd properly?
+  - [ ] add RANGE to table
 
-- [ ] still need to fix outliers
+
 - [ ] spend just a little more time viewing chart.js options (ticks, axis, labels, etc)
 
 
