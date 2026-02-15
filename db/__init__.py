@@ -40,6 +40,7 @@ def all_tables_init(statements: list, database_directory: str) -> bool:
     print("Initializing all tables in database .db file!!! Exciting!!!")
     try:
         with sqlite3.connect(database_directory) as conn:
+            conn.execute("PRAGMA journal_mode=WAL")
             conn.set_trace_callback(print)
             cursor = conn.cursor()
             for statement in statements:
