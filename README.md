@@ -28,3 +28,22 @@ There are a couple key folders to keep in mind in this project
   - holds the database file itself `.db`
   - also holds `__init__.py` for creating your `.db` file
   - Helper functions for interfacing with the database
+  
+
+## physical pinout
+
+==populate this section on what pins everything is coded to right now==
+==also add what sensors and other peripherals are required in the system===
+
+
+
+## quick start guide
+
+### setting up services
+==add some more detail on this section about setting up the services=
+
+1. make sure you copy the `.service` files into `/lib/systemd/system`
+2. make all needed hardware connections to sensors and stuff
+
+  
+  
