@@ -229,6 +229,114 @@ document.querySelectorAll('input[name="temp-scale"]').forEach(radio => {
     });
 });
 
+// ── Daily Trends Chart ────────────────────────────────────────────────────────
+
+let trendsChart = null;
+
+const trendsSensorSelect = document.getElementById('trends-sensor');
+const trendsMonthPicker  = document.getElementById('trends-month');
+
+// Initialise the month picker to the current month
+(function () {
+    const now = new Date();
+    const mm  = String(now.getMonth() + 1).padStart(2, '0');
+    trendsMonthPicker.value = `${now.getFullYear()}-${mm}`;
+})();
+
+function fetchTrends() {
+    const sensorId  = trendsSensorSelect.value;
+    const monthVal  = trendsMonthPicker.value;   // "YYYY-MM"
+    if (!monthVal) return;
+
+    const [year, month] = monthVal.split('-');
+
+    fetch(`/daily_trends?sensor_id=${sensorId}&year=${year}&month=${month}&scale=${temperatureScale}`)
+        .then(r => r.json())
+        .then(rows => {
+            const days  = rows.map(r => r.day);
+            const highs = rows.map(r => r.temp_high);
+            const lows  = rows.map(r => r.temp_low);
+            const means = rows.map(r => r.temp_mean);
+
+            const unit = temperatureScale === 'f' ? '°F' : '°C';
+            const rangeData = days.map((_, i) => [lows[i], highs[i]]);
+
+            if (trendsChart) {
+                trendsChart.data.labels                  = days;
+                trendsChart.data.datasets[0].data        = rangeData;
+                trendsChart.data.datasets[1].data        = means;
+                trendsChart.options.scales.y.title.text  = `Temperature (${unit})`;
+                trendsChart.update();
+            } else {
+                trendsChart = new Chart(document.getElementById('trends-chart'), {
+                    type: 'bar',
+                    data: {
+                        labels: days,
+                        datasets: [
+                            {
+                                label: 'Daily Range (Low – High)',
+                                data: rangeData,
+                                backgroundColor: 'rgba(62, 149, 205, 0.35)',
+                                borderColor: '#3e95cd',
+                                borderWidth: 1,
+                                borderSkipped: false,
+                            },
+                            {
+                                type: 'line',
+                                label: 'Daily Mean',
+                                data: means,
+                                borderColor: '#e8762c',
+                                backgroundColor: '#e8762c',
+                                pointRadius: 4,
+                                pointHoverRadius: 6,
+                                fill: false,
+                                tension: 0.3,
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Daily Temperature Trends'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) {
+                                        if (ctx.datasetIndex === 0) {
+                                            const [lo, hi] = ctx.raw;
+                                            return `Range: ${lo}${unit} – ${hi}${unit}`;
+                                        }
+                                        return `Mean: ${ctx.raw}${unit}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { title: { display: true, text: 'Day of Month' } },
+                            y: { title: { display: true, text: `Temperature (${unit})` } }
+                        }
+                    }
+                });
+            }
+        })
+        .catch(err => console.error('Error fetching daily trends:', err));
+}
+
+// Load trends on page load and wire up controls
+window.addEventListener('DOMContentLoaded', fetchTrends);
+trendsMonthPicker.addEventListener('change', fetchTrends);
+trendsSensorSelect.addEventListener('change', fetchTrends);
+
+// Re-fetch trends when temperature scale changes (append to existing scale listener)
+document.querySelectorAll('input[name="temp-scale"]').forEach(radio => {
+    radio.addEventListener('change', fetchTrends);
+});
+
+// ── Statistics information ─────────────────────────────────────────────────────
+
 // Statistics information
 function fetchStats(sensorId, maxLimit) {
 	fetch(`/stats?sensor_id=${sensorId}&max_limit=${maxLimit}&scale=${temperatureScale}`)

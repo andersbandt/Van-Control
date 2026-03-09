@@ -49,11 +49,13 @@ def align_data(primary, data):
     # Preprocess secondary timestamps to epoch seconds
     def preprocess_timestamps(s_timestamps):
         """Pre-convert timestamps to epoch seconds for reuse."""
-        return [
-            time.mktime(datetime.strptime(ts, "%Y-%m-%d %H:%M:%S.%f").timetuple()) +
-            datetime.strptime(ts, "%Y-%m-%d %H:%M:%S.%f").microsecond / 1_000_000
-            for ts in s_timestamps
-        ]
+        def ts_to_epoch(ts):
+            try:
+                dt = datetime.strptime(ts, "%Y-%m-%d %H:%M:%S.%f")
+            except ValueError:
+                dt = datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
+            return time.mktime(dt.timetuple()) + dt.microsecond / 1_000_000
+        return [ts_to_epoch(ts) for ts in s_timestamps]
 
     # Initialize aligned data
     aligned_data = [
@@ -68,14 +70,16 @@ def align_data(primary, data):
         secondary_timestamps = sensor_data["timestamp"]
         secondary_timestamps_epoch = preprocess_timestamps(secondary_timestamps)
 
+        # Build a reverse lookup: epoch float -> list index (preserves original string)
+        epoch_to_index = {ep: idx for idx, ep in enumerate(secondary_timestamps_epoch)}
+
         # Loop through each primary timestamp (inner loop)
         for i, (primary_ts, primary_ts_epoch) in enumerate(zip(primary_timestamps, primary_timestamps_epoch)):
             # Find the closest timestamp in the secondary dataset
             closest_ts_epoch = nearest(primary_ts_epoch, secondary_timestamps_epoch)
-            closest_ts = datetime.fromtimestamp(closest_ts_epoch).strftime("%Y-%m-%d %H:%M:%S.%f")
 
-            # Match that timestamp with the specific index for the sample we want
-            closest_index = secondary_timestamps.index(closest_ts)
+            # Match that epoch back to the original index
+            closest_index = epoch_to_index[closest_ts_epoch]
 
             # Append the temperature corresponding to the closest timestamp
             aligned_data[i]["temperature"].append(secondary_temperatures[closest_index])

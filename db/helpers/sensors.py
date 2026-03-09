@@ -186,6 +186,34 @@ def get_stats(sensor_id, limit):
         return stats  # Converts sqlite3.Row to a Python dict
 
 
+def get_daily_stats(sensor_id, year, month):
+    """
+    Get per-day temperature stats (high, low, mean) for a given sensor, year, and month.
+
+    Returns:
+        list of dicts: [{day, temp_high, temp_low, temp_mean}, ...]
+    """
+    query = """
+    SELECT
+        CAST(strftime('%d', timestamp) AS INTEGER) AS day,
+        MAX(temperature) AS temp_high,
+        MIN(temperature) AS temp_low,
+        AVG(temperature) AS temp_mean
+    FROM sensor_data
+    WHERE sensor_id = ?
+      AND strftime('%Y', timestamp) = ?
+      AND strftime('%m', timestamp) = ?
+    GROUP BY strftime('%d', timestamp)
+    ORDER BY day
+    """
+    with sqlite3.connect(DATABASE_DIRECTORY) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(query, (sensor_id, str(year), f"{int(month):02d}"))
+        rows = cur.fetchall()
+        return [dict(row) for row in rows]
+
+
 def get_stats_by_date_range(sensor_id, start_datetime, end_datetime):
     """
     Get statistics for a sensor within a date range.

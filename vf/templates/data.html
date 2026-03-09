@@ -107,6 +107,26 @@
       <p><strong>Latest time:</strong> <span id="stat-time-late">Loading...</span></p>
     </div>
 
+    <!-- DAILY TRENDS CHART -->
+    <h3>Daily Trends</h3>
+    <div class="control-section">
+      <label for="trends-month">Month:</label>
+      <input type="month" id="trends-month">
+      <label for="trends-sensor">Sensor:</label>
+      <select id="trends-sensor">
+        <option value="0">Internal (Sensor 0)</option>
+        <option value="1">Living Room (Sensor 1)</option>
+        <option value="2" selected>Bedroom (Sensor 2)</option>
+      </select>
+    </div>
+    <div class="chartMenu">
+      <div class="chartCard">
+        <div class="chartBox">
+          <canvas id="trends-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
     <!-- CHART 1 -->
     <div class="chartMenu">
       <div class="chartCard">
@@ -162,9 +182,12 @@
 	      },
 	      options: {
               responsive: true,
-              title: {
-		          display: true,
-		          text: 'Temperature data'
+              maintainAspectRatio: false,
+              plugins: {
+                  title: {
+		              display: true,
+		              text: 'Temperature data'
+                  }
               },
               scales: {
 		          x: {
@@ -209,6 +232,7 @@
 	      },
 	      options: {
               responsive: true,
+              maintainAspectRatio: false,
               plugins: {
 		          title: {
 		              display: true,

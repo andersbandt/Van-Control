@@ -100,6 +100,34 @@ def battery():
     )
 
 
+@blueprint.route('/daily_trends', methods=['GET'])
+def daily_trends():
+    sensor_id = request.args.get('sensor_id', default=2, type=int)
+    year = request.args.get('year', default=None, type=int)
+    month = request.args.get('month', default=None, type=int)
+    scale = request.args.get('scale', default='f', type=str)
+
+    if not year or not month:
+        return jsonify({'error': 'year and month required'}), 400
+
+    def c_to_f(c):
+        return c * 1.8 + 32 if c is not None else None
+
+    rows = dbh.sensors.get_daily_stats(sensor_id, year, month)
+
+    for row in rows:
+        if scale.lower() == 'f':
+            row['temp_high'] = round(c_to_f(row['temp_high']), 2) if row['temp_high'] is not None else None
+            row['temp_low'] = round(c_to_f(row['temp_low']), 2) if row['temp_low'] is not None else None
+            row['temp_mean'] = round(c_to_f(row['temp_mean']), 2) if row['temp_mean'] is not None else None
+        else:
+            row['temp_high'] = round(row['temp_high'], 2) if row['temp_high'] is not None else None
+            row['temp_low'] = round(row['temp_low'], 2) if row['temp_low'] is not None else None
+            row['temp_mean'] = round(row['temp_mean'], 2) if row['temp_mean'] is not None else None
+
+    return jsonify(rows)
+
+
 @blueprint.route('/control.html')
 def control():
     return render_template('control.html', **locals())
