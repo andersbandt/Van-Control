@@ -492,6 +492,13 @@ li:first-child a:after {
   margin-top: 10px;
 }
 
+.temp-updated {
+  font-size: 11px;
+  color: #ccc;
+  margin-top: 12px;
+  font-family: 'Lato', sans-serif;
+}
+
 @media screen and (max-width: 768px) {
   .temp-grid { padding: 32px 16px; gap: 16px; }
   .temp-card  { padding: 32px 24px; max-width: 100%; }

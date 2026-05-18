@@ -116,12 +116,14 @@ def current_temps():
     names = ['Internal', 'Living Room', 'Bedroom']
     result = []
     for sensor_id in range(3):
-        stats = dbh.sensors.get_stats(sensor_id, 1)
-        temp_c = stats.get('temp_mean')
+        rows = dbh.sensors.get_data(sensor_id, 1)  # returns [(timestamp, temperature, humidity)]
+        temp_c = rows[0][1] if rows else None
+        timestamp = rows[0][0] if rows else None
         result.append({
             'name': names[sensor_id],
             'temp_f': c_to_f(temp_c),
             'temp_c': round(temp_c, 1) if temp_c is not None else None,
+            'timestamp': timestamp,
         })
     return jsonify(result)
 

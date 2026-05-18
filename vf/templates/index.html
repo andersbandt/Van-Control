@@ -16,16 +16,19 @@
             <div class="temp-label">Internal</div>
             <div class="temp-value" id="temp-0">--</div>
             <div class="temp-unit">&deg;F</div>
+            <div class="temp-updated" id="updated-0"></div>
         </div>
         <div class="temp-card">
             <div class="temp-label">Living Room</div>
             <div class="temp-value" id="temp-1">--</div>
             <div class="temp-unit">&deg;F</div>
+            <div class="temp-updated" id="updated-1"></div>
         </div>
         <div class="temp-card">
             <div class="temp-label">Bedroom</div>
             <div class="temp-value" id="temp-2">--</div>
             <div class="temp-unit">&deg;F</div>
+            <div class="temp-updated" id="updated-2"></div>
         </div>
     </div>
 
@@ -38,6 +41,8 @@
                 sensors.forEach((s, i) => {
                     document.getElementById(`temp-${i}`).textContent =
                         s.temp_f !== null ? s.temp_f : 'N/A';
+                    document.getElementById(`updated-${i}`).textContent =
+                        s.timestamp ? s.timestamp : '';
                 });
             })
             .catch(err => console.error('Error fetching temps:', err));
