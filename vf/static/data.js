@@ -287,6 +287,7 @@ function fetchTrends() {
                 trendsChart.data.datasets[0].data        = rangeData;
                 trendsChart.data.datasets[1].data        = means;
                 trendsChart.options.scales.y.title.text  = `Temperature (${unit})`;
+                trendsChart.options.scales.x.reverse     = true;
                 trendsChart.update();
             } else {
                 trendsChart = new Chart(document.getElementById('trends-chart'), {
@@ -336,7 +337,7 @@ function fetchTrends() {
                             }
                         },
                         scales: {
-                            x: { title: { display: true, text: 'Day of Month' } },
+                            x: { title: { display: true, text: 'Day of Month' }, reverse: true },
                             y: { title: { display: true, text: `Temperature (${unit})` } }
                         }
                     }

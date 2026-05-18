@@ -1,38 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-        <title>Van: Battery Management</title>
-        <meta charset="utf-8">
-      <link rel="stylesheet" type="text/css" href="/static/css/stylesheet.css">
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  </head>
-      
-
+<head>
+    <title>Van: Battery</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="/static/css/stylesheet.css">
+</head>
 <body>
-      <h1>Van Control</h1>
-    <!-- NAVBAR (include via Jinja) -->
+    <h1>Van Life Control</h1>
+
     {% include 'asset_navbar.html' %}
 
-    <div class="container mt-4">
-        <h2>Battery Information</h2>
-        <div class="row mt-5">
-            <div class="col-md-6 offset-md-3">
-                <div class="card">
-                    <div class="card-header text-center">
-                    </div>
-                    <div class="card-body">
-                        <p><strong>Voltage:</strong> {{ voltage }} V</p>
-                        <p><strong>Current:</strong> {{ current }} A</p>
-                        <p><strong>Power Consumption:</strong> {{ power }} W</p>
-                        <p><strong>State of Charge:</strong> {{ state_of_charge }}%</p>
-                        <br>
-                        <p><strong>Last updated:</strong> {{ timestamp }}</p>
-                    </div>
-                </div>
+    {% set soc = state_of_charge | float(0) %}
+    {% if soc >= 50 %}
+        {% set soc_color = '#4caf50' %}
+    {% elif soc >= 20 %}
+        {% set soc_color = '#ff9800' %}
+    {% else %}
+        {% set soc_color = '#f44336' %}
+    {% endif %}
+
+    {% set current_val = current | float(0) %}
+
+    <div class="battery-dashboard">
+
+        <div class="battery-soc-block">
+            <div class="battery-soc-label">State of Charge</div>
+            <div class="battery-soc-value" style="color: {{ soc_color }};">{{ state_of_charge }} Ah</div>
+            <div class="battery-soc-bar-container">
+                <div class="battery-soc-bar" style="width: {{ [soc, 100] | min }}%; background: {{ soc_color }};"></div>
             </div>
         </div>
+
+        <div class="battery-stat-grid">
+            <div class="battery-stat-card">
+                <div class="battery-stat-label">Voltage</div>
+                <div class="battery-stat-value">{{ voltage }}<span class="battery-stat-unit"> V</span></div>
+            </div>
+            <div class="battery-stat-card">
+                <div class="battery-stat-label">Current</div>
+                <div class="battery-stat-value {% if current_val >= 0 %}current-positive{% else %}current-negative{% endif %}">
+                    {{ current }}<span class="battery-stat-unit"> A</span>
+                </div>
+                <div class="battery-stat-sublabel">{% if current_val >= 0 %}Charging{% else %}Discharging{% endif %}</div>
+            </div>
+            <div class="battery-stat-card battery-stat-card--wide">
+                <div class="battery-stat-label">Power</div>
+                <div class="battery-stat-value">{{ power }}<span class="battery-stat-unit"> W</span></div>
+            </div>
+        </div>
+
+        <div class="battery-timestamp">Last updated: {{ timestamp }}</div>
     </div>
+
+    {% include 'asset_footer.html' %}
 </body>
 </html>
-

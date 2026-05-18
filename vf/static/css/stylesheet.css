@@ -447,5 +447,172 @@ li:first-child a:after {
 }
 
 
+/* ── HOME PAGE: Temperature Cards ───────────────────────────────────────────── */
+
+.temp-grid {
+  display: flex;
+  gap: 28px;
+  justify-content: center;
+  padding: 60px 24px;
+  flex-wrap: wrap;
+}
+
+.temp-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  padding: 44px 56px;
+  text-align: center;
+  min-width: 200px;
+  flex: 1;
+  max-width: 300px;
+}
+
+.temp-label {
+  font-size: 14px;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 700;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  margin-bottom: 16px;
+}
+
+.temp-value {
+  font-size: 100px;
+  font-weight: 700;
+  font-family: 'Open Sans', sans-serif;
+  color: #3f3f3f;
+  line-height: 1;
+}
+
+.temp-unit {
+  font-size: 28px;
+  color: #bbb;
+  margin-top: 10px;
+}
+
+@media screen and (max-width: 768px) {
+  .temp-grid { padding: 32px 16px; gap: 16px; }
+  .temp-card  { padding: 32px 24px; max-width: 100%; }
+  .temp-value { font-size: 72px; }
+}
+
+
+/* ── BATTERY PAGE ────────────────────────────────────────────────────────────── */
+
+.battery-dashboard {
+  max-width: 580px;
+  margin: 48px auto;
+  padding: 0 20px;
+}
+
+.battery-soc-block {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  padding: 36px 40px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.battery-soc-label {
+  font-size: 13px;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 700;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+}
+
+.battery-soc-value {
+  font-size: 72px;
+  font-weight: 700;
+  font-family: 'Open Sans', sans-serif;
+  line-height: 1;
+  margin-bottom: 20px;
+}
+
+.battery-soc-bar-container {
+  background: #eee;
+  border-radius: 12px;
+  height: 20px;
+  overflow: hidden;
+}
+
+.battery-soc-bar {
+  height: 100%;
+  border-radius: 12px;
+  transition: width 0.5s ease;
+}
+
+.battery-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.battery-stat-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.08);
+  padding: 28px 24px;
+  text-align: center;
+}
+
+.battery-stat-card--wide {
+  grid-column: 1 / -1;
+}
+
+.battery-stat-label {
+  font-size: 12px;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 700;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+}
+
+.battery-stat-value {
+  font-size: 52px;
+  font-weight: 700;
+  font-family: 'Open Sans', sans-serif;
+  color: #3f3f3f;
+  line-height: 1;
+}
+
+.battery-stat-unit {
+  font-size: 20px;
+  color: #bbb;
+  font-weight: 400;
+}
+
+.battery-stat-sublabel {
+  font-size: 13px;
+  color: #aaa;
+  margin-top: 6px;
+  font-family: 'Lato', sans-serif;
+}
+
+.current-positive { color: #4caf50; }
+.current-negative { color: #f44336; }
+
+.battery-timestamp {
+  text-align: center;
+  color: #bbb;
+  font-size: 13px;
+  margin-top: 20px;
+  font-family: 'Lato', sans-serif;
+}
+
+@media screen and (max-width: 768px) {
+  .battery-soc-value { font-size: 56px; }
+  .battery-stat-value { font-size: 40px; }
+  .battery-stat-card { padding: 20px 16px; }
+}
+
+
 
 

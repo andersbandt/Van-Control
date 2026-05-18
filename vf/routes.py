@@ -108,6 +108,24 @@ def daily_trends():
     return jsonify(rows)
 
 
+@blueprint.route('/current_temps')
+def current_temps():
+    def c_to_f(c):
+        return round(c * 1.8 + 32, 1) if c is not None else None
+
+    names = ['Internal', 'Living Room', 'Bedroom']
+    result = []
+    for sensor_id in range(3):
+        stats = dbh.sensors.get_stats(sensor_id, 1)
+        temp_c = stats.get('temp_mean')
+        result.append({
+            'name': names[sensor_id],
+            'temp_f': c_to_f(temp_c),
+            'temp_c': round(temp_c, 1) if temp_c is not None else None,
+        })
+    return jsonify(result)
+
+
 @blueprint.route('/control.html')
 def control():
     return render_template('control.html', **locals())
