@@ -203,6 +203,19 @@ td, th {
 #cssmenu {
   background: #f96e5b;
   width: auto;
+  position: relative;
+}
+
+#nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 28px;
+  padding: 12px 16px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
 }
 
 #cssmenu ul {
@@ -326,6 +339,18 @@ li:first-child a:after {
   display: none;
 }
 @media screen and (max-width: 768px) {
+  #nav-toggle {
+    display: block;
+  }
+
+  #cssmenu ul {
+    display: none;
+  }
+
+  #cssmenu ul.open {
+    display: block;
+  }
+
   #cssmenu ul li {
     float: none;
     display: block;

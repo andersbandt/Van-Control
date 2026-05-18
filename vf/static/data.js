@@ -2,10 +2,31 @@
 // Temperature scale preference (default to Fahrenheit)
 let temperatureScale = 'f';
 
-// Fetch statistics on page load
+// Fetch chart data and statistics on page load
 window.addEventListener('DOMContentLoaded', () => {
     sliderValue.textContent = slider.value;
-    const initialMaxLimit = slider.value || 5000;  // Use the slider value on page load, default to 5000
+    const initialMaxLimit = slider.value || 5000;
+
+    // Populate charts asynchronously so the page shell loads immediately
+    fetch(`/data.html?max_limit=${initialMaxLimit}&scale=${temperatureScale}`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+        .then(r => r.json())
+        .then(data => {
+            chart1.data.labels = data.labels;
+            chart1.data.datasets[0].data = data.data1_1;
+            chart1.data.datasets[1].data = data.data1_2;
+            chart1.data.datasets[2].data = data.data1_3;
+            chart1.update();
+
+            chart2.data.labels = data.labels;
+            chart2.data.datasets[0].data = data.data2_1;
+            chart2.data.datasets[1].data = data.data2_2;
+            chart2.data.datasets[2].data = data.data2_3;
+            chart2.update();
+        })
+        .catch(err => console.error('Error fetching initial chart data:', err));
+
     fetchStats(0, initialMaxLimit);
     fetchStats(1, initialMaxLimit);
     fetchStats(2, initialMaxLimit);

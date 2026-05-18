@@ -1,5 +1,6 @@
 <!-- START -- NAV BAR -->
 <div id="cssmenu">
+  <button id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">&#9776;</button>
   <ul id="navbar">
     <li>
       <a href="index.html">Home</a>
@@ -8,7 +9,7 @@
       <a href="automate.html">Configure Automation</a>
     </li>
     <li>
-      <a href="data.html">Data Management</a>
+      <a href="data.html">Temperature</a>
     </li>
     <li>
       <a href="battery.html">Battery Management</a>
@@ -18,4 +19,12 @@
     </li>
   </ul>
 </div>
+<script>
+  document.getElementById('nav-toggle').addEventListener('click', function () {
+    const navbar = document.getElementById('navbar');
+    const expanded = this.getAttribute('aria-expanded') === 'true';
+    navbar.classList.toggle('open');
+    this.setAttribute('aria-expanded', String(!expanded));
+  });
+</script>
 <!-- END -- NAV BAR -->

@@ -146,111 +146,6 @@
     </div>
 
     <script>
-      const labels = {{ labels| tojson }};
-      const data1_1 = {{ data1_1| tojson }};
-      const data1_2 = {{ data1_2| tojson }};
-      const data1_3 = {{ data1_3| tojson }};
-      const data2_1 = {{ data2_1| tojson }};
-      const data2_2 = {{ data2_2| tojson }};
-      const data2_3 = {{ data2_3| tojson }};
-
-      // START - CHART
-      const chart1 = new Chart(document.getElementById("line-chart1"), {
-	      type: 'line',
-	      data: {
-              labels: labels,
-              datasets: [
-		          {
-		              data: data1_1,
-		              label: "Internal",
-		              borderColor: "#3e95cd",
-		              fill: false
-		          },
-		          {
-		              data: data1_2,
-		              label: "Living room",
-		              borderColor: "#c45850",
-		              fill: false
-		          },
-		          {
-		              data: data1_3,
-		              label: "Bedroom",
-		              borderColor: "#8fed9c",
-                      fill: false
-		          }
-              ]
-	      },
-	      options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                  title: {
-		              display: true,
-		              text: 'Temperature data'
-                  }
-              },
-              scales: {
-		          x: {
-		              ticks: {
-			              maxTicksLimit: 20
-		              }
-                  },
-                  // removed max limit because I fixed erroneous outlier sensors
-                  //y: {
-                  //     max: 35
-                  //    }
-              }
-          }
-      });
-      // END - CHART
-
-      // START - CHART
-      const chart2 = new Chart(document.getElementById("line-chart2"), {
-	      type: 'line',
-	      data: {
-              labels: labels,
-              datasets: [
-		          {
-		              data: data2_1,
-		              label: "Humidity 1",
-		              borderColor: "#381ecf",
-		              fill: false
-		          },
-		          {
-		              data: data2_2,
-		              label: "Humidity 2",
-		              borderColor: "#c23f23",
-		              fill: false
-		          },
-		          {
-		              data: data2_3,
-		              label: "Humidity 3",
-		              borderColor: "#15d363",
-		              fill: false
-		          }
-              ]
-	      },
-	      options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-		          title: {
-		              display: true,
-		              text: 'Humidity data'
-		          }
-              },
-              scales: {
-		          x: {
-		              ticks: {
-			              maxTicksLimit: 20
-		              }
-		          }
-              }
-	      }
-      });
-      // END - CHART
-
-
       // get reference to date picker
       const dayPicker = document.getElementById('day-picker');
       const dayPrev = document.getElementById('day-prev');
@@ -263,6 +158,43 @@
       const slider = document.getElementById('data-slider');
       const sliderValue = document.getElementById('slider-value');
       const dataContainer = document.getElementById('data-container');
+
+      // Charts initialised empty — data.js fetches and populates on load
+      const chart1 = new Chart(document.getElementById("line-chart1"), {
+          type: 'line',
+          data: {
+              labels: [],
+              datasets: [
+                  { data: [], label: "Internal",     borderColor: "#3e95cd", fill: false },
+                  { data: [], label: "Living room",  borderColor: "#c45850", fill: false },
+                  { data: [], label: "Bedroom",      borderColor: "#8fed9c", fill: false }
+              ]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { title: { display: true, text: 'Temperature data' } },
+              scales: { x: { ticks: { maxTicksLimit: 20 } } }
+          }
+      });
+
+      const chart2 = new Chart(document.getElementById("line-chart2"), {
+          type: 'line',
+          data: {
+              labels: [],
+              datasets: [
+                  { data: [], label: "Humidity 1", borderColor: "#381ecf", fill: false },
+                  { data: [], label: "Humidity 2", borderColor: "#c23f23", fill: false },
+                  { data: [], label: "Humidity 3", borderColor: "#15d363", fill: false }
+              ]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { title: { display: true, text: 'Humidity data' } },
+              scales: { x: { ticks: { maxTicksLimit: 20 } } }
+          }
+      });
     </script>
   </body>
 </html>

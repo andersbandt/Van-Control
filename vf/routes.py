@@ -43,46 +43,26 @@ def data_fetch():
     end_date = request.args.get('end_date', default=None, type=str)
     scale = request.args.get('scale', default='f', type=str)
 
-    # Check if date range is provided
-    if start_date and end_date:
-        # Use date-based retrieval
-        aligned_data = datah.retrieve_aligned_data_by_date(start_date, end_date, scale=scale)
-    else:
-        # Use limit-based retrieval (original behavior)
-        aligned_data = datah.retrieve_aligned_data(max_limit, scale=scale)
-
-    # Process aligned data
-    labels = [row["timestamp"] for row in aligned_data]
-    temp1 = [row["temperature"][0] for row in aligned_data]
-    temp2 = [row["temperature"][1] for row in aligned_data]
-    temp3 = [row["temperature"][2] for row in aligned_data]
-
-    hum1 = [row["humidity"][0] for row in aligned_data]
-    hum2 = [row["humidity"][1] for row in aligned_data]
-    hum3 = [row["humidity"][2] for row in aligned_data]
-
-    # If the request is an AJAX call, return JSON
+    # AJAX requests (slider, date picker, scale toggle) — return chart data as JSON
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        if start_date and end_date:
+            aligned_data = datah.retrieve_aligned_data_by_date(start_date, end_date, scale=scale)
+        else:
+            aligned_data = datah.retrieve_aligned_data(max_limit, scale=scale)
+
+        labels = [row["timestamp"] for row in aligned_data]
         return jsonify({
             'labels': labels,
-            'data1_1': temp1,
-            'data1_2': temp2,
-            'data1_3': temp3,
-            'data2_1': hum1,
-            'data2_2': hum2,
-            'data2_3': hum3
+            'data1_1': [row["temperature"][0] for row in aligned_data],
+            'data1_2': [row["temperature"][1] for row in aligned_data],
+            'data1_3': [row["temperature"][2] for row in aligned_data],
+            'data2_1': [row["humidity"][0] for row in aligned_data],
+            'data2_2': [row["humidity"][1] for row in aligned_data],
+            'data2_3': [row["humidity"][2] for row in aligned_data],
         })
 
-    # Otherwise, return the HTML page with data rendered in Jinja
-    return render_template('data.html',
-                           labels=labels,
-                           data1_1=temp1,
-                           data1_2=temp2,
-                           data1_3=temp3,
-                           data2_1=hum1,
-                           data2_2=hum2,
-                           data2_3=hum3,
-                           max_limit=max_limit)
+    # Initial page load — serve the shell immediately, JS fetches data async
+    return render_template('data.html', max_limit=max_limit)
 
 
 @blueprint.route('/battery.html')
