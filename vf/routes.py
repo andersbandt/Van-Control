@@ -15,7 +15,7 @@ import db.helpers as dbh
 from analysis import data_helper as datah
 
 # define my Blueprint class that handles everything
-blueprint = Blueprint('routes', __name__, static_folder='static', template_folder='/templates')
+blueprint = Blueprint('routes', __name__, static_folder='static', template_folder='templates')
 
 
 
