@@ -186,30 +186,33 @@ def get_stats(sensor_id, limit):
         return stats  # Converts sqlite3.Row to a Python dict
 
 
-def get_daily_stats(sensor_id, year, month):
+def get_binned_stats(sensor_id, start_datetime, end_datetime, bin_days):
     """
-    Get per-day temperature stats (high, low, mean) for a given sensor, year, and month.
+    Get temperature stats (high, low, mean) for a sensor within a date range,
+    grouped into fixed-size bins of `bin_days` days anchored to start_datetime.
 
     Returns:
-        list of dicts: [{day, temp_high, temp_low, temp_mean}, ...]
+        list of dicts: [{bin_start, bin_end, temp_high, temp_low, temp_mean}, ...]
     """
     query = """
     SELECT
-        CAST(strftime('%d', timestamp) AS INTEGER) AS day,
+        CAST((julianday(timestamp) - julianday(?)) / ? AS INTEGER) AS bin_index,
+        MIN(timestamp) AS bin_start,
+        MAX(timestamp) AS bin_end,
         MAX(temperature) AS temp_high,
         MIN(temperature) AS temp_low,
         AVG(temperature) AS temp_mean
     FROM sensor_data
     WHERE sensor_id = ?
-      AND strftime('%Y', timestamp) = ?
-      AND strftime('%m', timestamp) = ?
-    GROUP BY strftime('%d', timestamp)
-    ORDER BY day
+      AND timestamp >= ?
+      AND timestamp <= ?
+    GROUP BY bin_index
+    ORDER BY bin_index
     """
     with sqlite3.connect(DATABASE_DIRECTORY) as conn:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
-        cur.execute(query, (sensor_id, str(year), f"{int(month):02d}"))
+        cur.execute(query, (start_datetime, bin_days, sensor_id, start_datetime, end_datetime))
         rows = cur.fetchall()
         return [dict(row) for row in rows]
 

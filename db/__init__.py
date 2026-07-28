@@ -30,6 +30,12 @@ class TableStatements:
                         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
                     );"""
 
+    # User-editable display names for each sensor_id
+    sensor_config = """CREATE TABLE IF NOT EXISTS sensor_config (
+                        sensor_id INTEGER PRIMARY KEY,
+                        name VARCHAR(50) NOT NULL
+                    );"""
+
 
 """
 Create all the tables. It uses a list instead

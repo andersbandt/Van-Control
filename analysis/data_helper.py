@@ -8,6 +8,7 @@ from bisect import bisect_left, bisect_right, bisect
 
 # import user created modules
 import db.helpers as dbh
+from config import NUM_SENSORS, PRIMARY_SENSOR
 
 """
 Aligns the data from multiple sensors to the primary sensor's timestamps.
@@ -93,13 +94,6 @@ def align_data(primary, data):
 def retrieve_aligned_data(max_limit, scale='c'):
     print(f"Retrieving aligned data with limit {max_limit}")
 
-    primary_sensor = 2  # tag:HARDCODE
-
-    # Get the raw data for each sensor
-    raw_data0 = dbh.sensors.get_data(0, max_limit)
-    raw_data1 = dbh.sensors.get_data(1, max_limit)
-    raw_data2 = dbh.sensors.get_data(2, max_limit)
-
     # Convert raw data to dictionary format
     def process_raw_data(raw_data):
         return {
@@ -109,13 +103,12 @@ def retrieve_aligned_data(max_limit, scale='c'):
         }
 
     data = [
-        process_raw_data(raw_data0),
-        process_raw_data(raw_data1),
-        process_raw_data(raw_data2),
+        process_raw_data(dbh.sensors.get_data(i, max_limit))
+        for i in range(NUM_SENSORS)
     ]
 
     # Align the data
-    aligned_data = align_data(primary_sensor, data)
+    aligned_data = align_data(PRIMARY_SENSOR, data)
 
     # ---- temperature scaling ----
     scale = scale.lower()
@@ -145,16 +138,9 @@ def retrieve_aligned_data_by_date(start_date, end_date, scale='c'):
     """
     print(f"Retrieving aligned data from {start_date} to {end_date}")
 
-    primary_sensor = 2  # tag:HARDCODE
-
     # Convert dates to datetime format for SQL query
     start_datetime = f"{start_date} 00:00:00"
     end_datetime = f"{end_date} 23:59:59"
-
-    # Get the raw data for each sensor using date range
-    raw_data0 = dbh.sensors.get_data_by_date_range(0, start_datetime, end_datetime)
-    raw_data1 = dbh.sensors.get_data_by_date_range(1, start_datetime, end_datetime)
-    raw_data2 = dbh.sensors.get_data_by_date_range(2, start_datetime, end_datetime)
 
     # Convert raw data to dictionary format
     def process_raw_data(raw_data):
@@ -165,13 +151,12 @@ def retrieve_aligned_data_by_date(start_date, end_date, scale='c'):
         }
 
     data = [
-        process_raw_data(raw_data0),
-        process_raw_data(raw_data1),
-        process_raw_data(raw_data2),
+        process_raw_data(dbh.sensors.get_data_by_date_range(i, start_datetime, end_datetime))
+        for i in range(NUM_SENSORS)
     ]
 
     # Align the data
-    aligned_data = align_data(primary_sensor, data)
+    aligned_data = align_data(PRIMARY_SENSOR, data)
 
     # ---- temperature scaling ----
     scale = scale.lower()

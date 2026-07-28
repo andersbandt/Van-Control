@@ -13,19 +13,19 @@
 
     <div class="temp-grid">
         <div class="temp-card">
-            <div class="temp-label">Internal</div>
+            <div class="temp-label" id="label-0">Loading...</div>
             <div class="temp-value" id="temp-0">--</div>
             <div class="temp-unit">&deg;F</div>
             <div class="temp-updated" id="updated-0"></div>
         </div>
         <div class="temp-card">
-            <div class="temp-label">Living Room</div>
+            <div class="temp-label" id="label-1">Loading...</div>
             <div class="temp-value" id="temp-1">--</div>
             <div class="temp-unit">&deg;F</div>
             <div class="temp-updated" id="updated-1"></div>
         </div>
         <div class="temp-card">
-            <div class="temp-label">Bedroom</div>
+            <div class="temp-label" id="label-2">Loading...</div>
             <div class="temp-value" id="temp-2">--</div>
             <div class="temp-unit">&deg;F</div>
             <div class="temp-updated" id="updated-2"></div>
@@ -39,6 +39,7 @@
             .then(r => r.json())
             .then(sensors => {
                 sensors.forEach((s, i) => {
+                    document.getElementById(`label-${i}`).textContent = s.name;
                     document.getElementById(`temp-${i}`).textContent =
                         s.temp_f !== null ? s.temp_f : 'N/A';
                     document.getElementById(`updated-${i}`).textContent =

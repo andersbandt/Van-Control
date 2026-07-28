@@ -4,6 +4,7 @@
 
 import db.helpers as dbh
 import statistics
+from config import NUM_SENSORS
 
 
 
@@ -17,13 +18,12 @@ import statistics
 #Mean of sensors humidity 2 is 31.076315789473686
 
 
-num_sensors = 3
 limit = 50
 
 
 temps = []
 hums = []
-for i in range (0, num_sensors):
+for i in range(NUM_SENSORS):
     data = dbh.sensors.get_data(i, limit)
     s_temps = [row[1] for row in data]
     s_hum = [row[2] for row in data]

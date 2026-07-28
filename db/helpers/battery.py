@@ -42,7 +42,8 @@ def get_battery_data():
         data.setdefault('current', 'N/A')
         data.setdefault('power', 'N/A')
         data.setdefault('state_of_charge', 'N/A')
-        data['timestamp'] = rows[-1][2]
+        data['connected'] = bool(rows)
+        data['timestamp'] = rows[-1][2] if rows else None
         for row in rows:
             label, value, timestamp = row
             if label == 'V':

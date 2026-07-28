@@ -2,8 +2,83 @@
 // Temperature scale preference (default to Fahrenheit)
 let temperatureScale = 'f';
 
+// Average seconds between samples, derived empirically from sensor 0's
+// current stats window (loop timing isn't fixed, so we measure it rather
+// than assume it).
+let sampleIntervalSeconds = null;
+
+function formatDuration(totalSeconds) {
+    if (!isFinite(totalSeconds) || totalSeconds <= 0) return '…';
+    const minutes = totalSeconds / 60;
+    const hours = minutes / 60;
+    const days = hours / 24;
+
+    if (days >= 1) return `${days.toFixed(1)} days`;
+    if (hours >= 1) return `${hours.toFixed(1)} hours`;
+    if (minutes >= 1) return `${minutes.toFixed(1)} min`;
+    return `${Math.round(totalSeconds)} sec`;
+}
+
+function updateSliderDuration() {
+    if (!sliderDuration) return;
+    if (!sampleIntervalSeconds) {
+        sliderDuration.textContent = '…';
+        return;
+    }
+    sliderDuration.textContent = formatDuration(slider.value * sampleIntervalSeconds);
+}
+
+// ── Sensor naming ────────────────────────────────────────────────────────────
+
+function applySensorNames(names) {
+    Object.entries(names).forEach(([id, name]) => {
+        document.querySelectorAll(`.sensor-name[data-sensor="${id}"]`).forEach(el => {
+            el.textContent = name;
+        });
+
+        const trendOption = document.getElementById(`trend-opt-${id}`);
+        if (trendOption) trendOption.textContent = `${name} (Sensor ${id})`;
+
+        const renameInput = document.getElementById(`rename-${id}`);
+        if (renameInput && document.activeElement !== renameInput) renameInput.value = name;
+    });
+
+    [chart1, chart2].forEach(chart => {
+        if (!chart) return;
+        chart.data.datasets.forEach((ds, i) => {
+            if (names[i]) ds.label = names[i];
+        });
+        chart.update();
+    });
+}
+
+function fetchSensorNames() {
+    return fetch('/sensor_names')
+        .then(r => r.json())
+        .then(names => {
+            applySensorNames(names);
+            return names;
+        })
+        .catch(err => console.error('Error fetching sensor names:', err));
+}
+
+document.getElementById('save-sensor-names').addEventListener('click', () => {
+    const updates = [0, 1, 2].map(id => {
+        const val = document.getElementById(`rename-${id}`).value.trim();
+        if (!val) return Promise.resolve();
+        return fetch('/sensor_names', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sensor_id: id, name: val }),
+        });
+    });
+    Promise.all(updates).then(fetchSensorNames);
+});
+
 // Fetch chart data and statistics on page load
 window.addEventListener('DOMContentLoaded', () => {
+    fetchSensorNames();
+
     sliderValue.textContent = slider.value;
     const initialMaxLimit = slider.value || 5000;
 
@@ -36,6 +111,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // Update the value display when the slider changes
 slider.addEventListener('input', function () {
     sliderValue.textContent = slider.value;
+    updateSliderDuration();
 });
 
 // Fetch new data when the slider stops being dragged
@@ -121,12 +197,14 @@ function fetchStatsByDate(sensorId, startDate, endDate) {
             document.getElementById(`stat-temp-low-${sensorId}`).textContent = stats.temp_low ?? 'N/A';
             document.getElementById(`stat-temp-mean-${sensorId}`).textContent = stats.temp_mean ?? 'N/A';
             document.getElementById(`stat-temp-stddev-${sensorId}`).textContent = stats.temp_stddev ?? 'N/A';
+            document.getElementById(`stat-temp-range-${sensorId}`).textContent = stats.temp_range ?? 'N/A';
 
             // Humidity stats
             document.getElementById(`stat-hum-high-${sensorId}`).textContent = stats.hum_high ?? 'N/A';
             document.getElementById(`stat-hum-low-${sensorId}`).textContent = stats.hum_low ?? 'N/A';
             document.getElementById(`stat-hum-mean-${sensorId}`).textContent = stats.hum_mean ?? 'N/A';
             document.getElementById(`stat-hum-stddev-${sensorId}`).textContent = stats.hum_stddev ?? 'N/A';
+            document.getElementById(`stat-hum-range-${sensorId}`).textContent = stats.hum_range ?? 'N/A';
 
             // General stats (only update once, not per sensor)
             document.getElementById(`stat-count`).textContent = stats.count ?? 'N/A';
@@ -255,48 +333,51 @@ document.querySelectorAll('input[name="temp-scale"]').forEach(radio => {
 let trendsChart = null;
 
 const trendsSensorSelect = document.getElementById('trends-sensor');
-const trendsMonthPicker  = document.getElementById('trends-month');
+const trendsStartPicker  = document.getElementById('trends-start');
+const trendsEndPicker    = document.getElementById('trends-end');
+const trendsBinSelect    = document.getElementById('trends-bin');
 
-// Initialise the month picker to the current month
+// Default to the past 180 days, binned weekly — enough range to see seasonal trends
 (function () {
-    const now = new Date();
-    const mm  = String(now.getMonth() + 1).padStart(2, '0');
-    trendsMonthPicker.value = `${now.getFullYear()}-${mm}`;
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 180);
+    trendsEndPicker.value   = formatDateISO(end);
+    trendsStartPicker.value = formatDateISO(start);
 })();
 
 function fetchTrends() {
     const sensorId  = trendsSensorSelect.value;
-    const monthVal  = trendsMonthPicker.value;   // "YYYY-MM"
-    if (!monthVal) return;
+    const startDate = trendsStartPicker.value;
+    const endDate   = trendsEndPicker.value;
+    const binDays   = trendsBinSelect.value;
+    if (!startDate || !endDate) return;
 
-    const [year, month] = monthVal.split('-');
-
-    fetch(`/daily_trends?sensor_id=${sensorId}&year=${year}&month=${month}&scale=${temperatureScale}`)
+    fetch(`/daily_trends?sensor_id=${sensorId}&start_date=${startDate}&end_date=${endDate}&bin_days=${binDays}&scale=${temperatureScale}`)
         .then(r => r.json())
         .then(rows => {
-            const days  = rows.map(r => r.day);
-            const highs = rows.map(r => r.temp_high);
-            const lows  = rows.map(r => r.temp_low);
-            const means = rows.map(r => r.temp_mean);
+            const labels = rows.map(r => (r.bin_start || '').slice(0, 10));
+            const highs  = rows.map(r => r.temp_high);
+            const lows   = rows.map(r => r.temp_low);
+            const means  = rows.map(r => r.temp_mean);
 
             const unit = temperatureScale === 'f' ? '°F' : '°C';
-            const rangeData = days.map((_, i) => [lows[i], highs[i]]);
+            const rangeData = labels.map((_, i) => [lows[i], highs[i]]);
 
             if (trendsChart) {
-                trendsChart.data.labels                  = days;
+                trendsChart.data.labels                  = labels;
                 trendsChart.data.datasets[0].data        = rangeData;
                 trendsChart.data.datasets[1].data        = means;
                 trendsChart.options.scales.y.title.text  = `Temperature (${unit})`;
-                trendsChart.options.scales.x.reverse     = true;
                 trendsChart.update();
             } else {
                 trendsChart = new Chart(document.getElementById('trends-chart'), {
                     type: 'bar',
                     data: {
-                        labels: days,
+                        labels: labels,
                         datasets: [
                             {
-                                label: 'Daily Range (Low – High)',
+                                label: 'Period Range (Low – High)',
                                 data: rangeData,
                                 backgroundColor: 'rgba(62, 149, 205, 0.35)',
                                 borderColor: '#3e95cd',
@@ -305,7 +386,7 @@ function fetchTrends() {
                             },
                             {
                                 type: 'line',
-                                label: 'Daily Mean',
+                                label: 'Period Mean',
                                 data: means,
                                 borderColor: '#e8762c',
                                 backgroundColor: '#e8762c',
@@ -322,7 +403,7 @@ function fetchTrends() {
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Daily Temperature Trends'
+                                text: 'Temperature Trends'
                             },
                             tooltip: {
                                 callbacks: {
@@ -337,7 +418,7 @@ function fetchTrends() {
                             }
                         },
                         scales: {
-                            x: { title: { display: true, text: 'Day of Month' }, reverse: true },
+                            x: { title: { display: true, text: 'Period Start' } },
                             y: { title: { display: true, text: `Temperature (${unit})` } }
                         }
                     }
@@ -349,7 +430,9 @@ function fetchTrends() {
 
 // Load trends on page load and wire up controls
 window.addEventListener('DOMContentLoaded', fetchTrends);
-trendsMonthPicker.addEventListener('change', fetchTrends);
+trendsStartPicker.addEventListener('change', fetchTrends);
+trendsEndPicker.addEventListener('change', fetchTrends);
+trendsBinSelect.addEventListener('change', fetchTrends);
 trendsSensorSelect.addEventListener('change', fetchTrends);
 
 // Re-fetch trends when temperature scale changes (append to existing scale listener)
@@ -369,17 +452,29 @@ function fetchStats(sensorId, maxLimit) {
 		    document.getElementById(`stat-temp-low-${sensorId}`).textContent = stats.temp_low ?? 'N/A';
 		    document.getElementById(`stat-temp-mean-${sensorId}`).textContent = stats.temp_mean ?? 'N/A';
 		    document.getElementById(`stat-temp-stddev-${sensorId}`).textContent = stats.temp_stddev ?? 'N/A';
+		    document.getElementById(`stat-temp-range-${sensorId}`).textContent = stats.temp_range ?? 'N/A';
 
 		    // Humidity stats
 		    document.getElementById(`stat-hum-high-${sensorId}`).textContent = stats.hum_high ?? 'N/A';
 		    document.getElementById(`stat-hum-low-${sensorId}`).textContent = stats.hum_low ?? 'N/A';
 		    document.getElementById(`stat-hum-mean-${sensorId}`).textContent = stats.hum_mean ?? 'N/A';
 		    document.getElementById(`stat-hum-stddev-${sensorId}`).textContent = stats.hum_stddev ?? 'N/A';
+		    document.getElementById(`stat-hum-range-${sensorId}`).textContent = stats.hum_range ?? 'N/A';
 
 		    // General stats (only update once, not per sensor)
 		    document.getElementById(`stat-count`).textContent = stats.count ?? 'N/A';
 		    document.getElementById(`stat-time-early`).textContent = stats.earliest_time ?? 'N/A';
 		    document.getElementById(`stat-time-late`).textContent = stats.latest_time ?? 'N/A';
+
+		    // Derive the actual sample interval from sensor 0's current window so the
+		    // slider's sample count can be shown as a duration.
+		    if (sensorId === 0 && stats.count > 1 && stats.earliest_time && stats.latest_time) {
+		        const earliest = new Date(stats.earliest_time.replace(' ', 'T'));
+		        const latest = new Date(stats.latest_time.replace(' ', 'T'));
+		        const spanSeconds = (latest - earliest) / 1000;
+		        sampleIntervalSeconds = spanSeconds / (stats.count - 1);
+		        updateSliderDuration();
+		    }
         })
         .catch(error => console.error('Error fetching stats:', error));
 }

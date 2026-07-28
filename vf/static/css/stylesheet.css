@@ -523,6 +523,21 @@ li:first-child a:after {
   margin-bottom: 20px;
 }
 
+.battery-status-banner {
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  padding: 36px 40px;
+  text-align: center;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 16px;
+}
+
+.battery-status-banner--offline {
+  background: #fff8e6;
+  color: #8a6100;
+  border: 1px solid #ffe4a1;
+}
+
 .battery-soc-label {
   font-size: 13px;
   font-family: 'Open Sans', sans-serif;

@@ -11,6 +11,13 @@
 
     {% include 'asset_navbar.html' %}
 
+    {% if not connected %}
+    <div class="battery-dashboard">
+        <div class="battery-status-banner battery-status-banner--offline">
+            &#9888; Battery monitor not connected. No VE.Direct data has been received from the BMV-712 yet.
+        </div>
+    </div>
+    {% else %}
     {% set soc = state_of_charge | float(0) %}
     {% if soc >= 50 %}
         {% set soc_color = '#4caf50' %}
@@ -52,6 +59,7 @@
 
         <div class="battery-timestamp">Last updated: {{ timestamp }}</div>
     </div>
+    {% endif %}
 
     {% include 'asset_footer.html' %}
 </body>

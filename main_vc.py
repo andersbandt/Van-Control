@@ -15,6 +15,7 @@ from vc import vc_driver
 from vc import dht
 from vc.vedirect import Vedirect
 from vc.display import display_control as dispc
+from config import NUM_SENSORS
 
 
 # main loop of program
@@ -50,7 +51,7 @@ def main():
 
 
         # get temperature data and update display
-        for i in range(0, 3): # TODO: eliminate this tag:HARDCODE
+        for i in range(NUM_SENSORS):
             data = dbh.sensors.get_data(i, 1)
             lcd.display_temp_out(f"{i}", data[0][1], data[0][2], data[0][0])
             time.sleep(3)
