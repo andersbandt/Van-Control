@@ -38,9 +38,6 @@ function applySensorNames(names) {
 
         const trendOption = document.getElementById(`trend-opt-${id}`);
         if (trendOption) trendOption.textContent = `${name} (Sensor ${id})`;
-
-        const renameInput = document.getElementById(`rename-${id}`);
-        if (renameInput && document.activeElement !== renameInput) renameInput.value = name;
     });
 
     [chart1, chart2].forEach(chart => {
@@ -61,19 +58,6 @@ function fetchSensorNames() {
         })
         .catch(err => console.error('Error fetching sensor names:', err));
 }
-
-document.getElementById('save-sensor-names').addEventListener('click', () => {
-    const updates = [0, 1, 2].map(id => {
-        const val = document.getElementById(`rename-${id}`).value.trim();
-        if (!val) return Promise.resolve();
-        return fetch('/sensor_names', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sensor_id: id, name: val }),
-        });
-    });
-    Promise.all(updates).then(fetchSensorNames);
-});
 
 // Fetch chart data and statistics on page load
 window.addEventListener('DOMContentLoaded', () => {
@@ -206,10 +190,12 @@ function fetchStatsByDate(sensorId, startDate, endDate) {
             document.getElementById(`stat-hum-stddev-${sensorId}`).textContent = stats.hum_stddev ?? 'N/A';
             document.getElementById(`stat-hum-range-${sensorId}`).textContent = stats.hum_range ?? 'N/A';
 
-            // General stats (only update once, not per sensor)
-            document.getElementById(`stat-count`).textContent = stats.count ?? 'N/A';
-            document.getElementById(`stat-time-early`).textContent = stats.earliest_time ?? 'N/A';
-            document.getElementById(`stat-time-late`).textContent = stats.latest_time ?? 'N/A';
+            // General stats reflect sensor 0 only — see fetchStats() for why.
+            if (sensorId === 0) {
+                document.getElementById(`stat-count`).textContent = stats.count ?? 'N/A';
+                document.getElementById(`stat-time-early`).textContent = stats.earliest_time ?? 'N/A';
+                document.getElementById(`stat-time-late`).textContent = stats.latest_time ?? 'N/A';
+            }
         })
         .catch(error => console.error('Error fetching stats by date:', error));
 }
@@ -461,19 +447,24 @@ function fetchStats(sensorId, maxLimit) {
 		    document.getElementById(`stat-hum-stddev-${sensorId}`).textContent = stats.hum_stddev ?? 'N/A';
 		    document.getElementById(`stat-hum-range-${sensorId}`).textContent = stats.hum_range ?? 'N/A';
 
-		    // General stats (only update once, not per sensor)
-		    document.getElementById(`stat-count`).textContent = stats.count ?? 'N/A';
-		    document.getElementById(`stat-time-early`).textContent = stats.earliest_time ?? 'N/A';
-		    document.getElementById(`stat-time-late`).textContent = stats.latest_time ?? 'N/A';
+		    // General stats reflect sensor 0 only — the three sensors don't necessarily
+		    // share the exact same count/time range (dropped DHT readings, etc.), and
+		    // this keeps the displayed range consistent with the slider's duration
+		    // estimate below rather than showing whichever sensor's fetch resolves last.
+		    if (sensorId === 0) {
+		        document.getElementById(`stat-count`).textContent = stats.count ?? 'N/A';
+		        document.getElementById(`stat-time-early`).textContent = stats.earliest_time ?? 'N/A';
+		        document.getElementById(`stat-time-late`).textContent = stats.latest_time ?? 'N/A';
 
-		    // Derive the actual sample interval from sensor 0's current window so the
-		    // slider's sample count can be shown as a duration.
-		    if (sensorId === 0 && stats.count > 1 && stats.earliest_time && stats.latest_time) {
-		        const earliest = new Date(stats.earliest_time.replace(' ', 'T'));
-		        const latest = new Date(stats.latest_time.replace(' ', 'T'));
-		        const spanSeconds = (latest - earliest) / 1000;
-		        sampleIntervalSeconds = spanSeconds / (stats.count - 1);
-		        updateSliderDuration();
+		        // Derive the actual sample interval from sensor 0's current window so the
+		        // slider's sample count can be shown as a duration.
+		        if (stats.count > 1 && stats.earliest_time && stats.latest_time) {
+		            const earliest = new Date(stats.earliest_time.replace(' ', 'T'));
+		            const latest = new Date(stats.latest_time.replace(' ', 'T'));
+		            const spanSeconds = (latest - earliest) / 1000;
+		            sampleIntervalSeconds = spanSeconds / (stats.count - 1);
+		            updateSliderDuration();
+		        }
 		    }
         })
         .catch(error => console.error('Error fetching stats:', error));

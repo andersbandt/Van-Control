@@ -97,6 +97,35 @@ td, th {
 	margin-left: auto;
 }
 
+/* Statistics tables (data.html) — kept tight since they're just label/value pairs */
+#temp-stats-container table,
+#hum-stats-container table {
+  border-collapse: collapse;
+}
+
+#temp-stats-container td,
+#temp-stats-container th,
+#hum-stats-container td,
+#hum-stats-container th {
+  padding: 2px 8px;
+  line-height: 1.2;
+}
+
+#temp-stats-container td p,
+#hum-stats-container td p {
+  margin: 0;
+}
+
+@media screen and (max-width: 768px) {
+  #temp-stats-container td,
+  #temp-stats-container th,
+  #hum-stats-container td,
+  #hum-stats-container th {
+    padding: 2px 4px;
+    font-size: 12px;
+  }
+}
+
 
 /* IMAGE STYLING */
 

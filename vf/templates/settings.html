@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Van Control: Settings</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="/static/css/stylesheet.css">
+</head>
+<body>
+    <h1>Van Control</h1>
+    {% include 'asset_navbar.html' %}
+
+    <h2>Settings</h2>
+
+    <div class="control-section">
+      <h3>Rename Sensors</h3>
+      <label>Sensor 0: <input type="text" id="rename-0" class="sensor-rename-input"></label>
+      <label>Sensor 1: <input type="text" id="rename-1" class="sensor-rename-input"></label>
+      <label>Sensor 2: <input type="text" id="rename-2" class="sensor-rename-input"></label>
+      <button id="save-sensor-names" type="button">Save Names</button>
+      <span id="save-status"></span>
+    </div>
+
+    {% include 'asset_footer.html' %}
+
+    <script>
+        function loadSensorNames() {
+            fetch('/sensor_names')
+                .then(r => r.json())
+                .then(names => {
+                    Object.entries(names).forEach(([id, name]) => {
+                        const input = document.getElementById(`rename-${id}`);
+                        if (input) input.value = name;
+                    });
+                })
+                .catch(err => console.error('Error fetching sensor names:', err));
+        }
+
+        document.getElementById('save-sensor-names').addEventListener('click', () => {
+            const status = document.getElementById('save-status');
+            const updates = [0, 1, 2].map(id => {
+                const val = document.getElementById(`rename-${id}`).value.trim();
+                if (!val) return Promise.resolve();
+                return fetch('/sensor_names', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sensor_id: id, name: val }),
+                });
+            });
+            Promise.all(updates).then(() => {
+                status.textContent = 'Saved!';
+                setTimeout(() => { status.textContent = ''; }, 2000);
+                loadSensorNames();
+            });
+        });
+
+        window.addEventListener('DOMContentLoaded', loadSensorNames);
+    </script>
+</body>
+</html>

@@ -37,6 +37,11 @@ def automate():
     return render_template('automate.html', **locals())
 
 
+@blueprint.route('/settings.html')
+def settings():
+    return render_template('settings.html')
+
+
 @blueprint.route('/data.html')
 def data_fetch():
     max_limit = request.args.get('max_limit', default=5000, type=int)

@@ -33,11 +33,15 @@ Web interface for data visualization and control. Runs as `root` on port 80.
 **Flask app structure:**
 - `vf/app.py` - Flask app factory with logging to `app.log`
 - `vf/routes.py` - All routes defined in a Blueprint
-  - `/` - Home page
-  - `/data.html` - Temperature/humidity charts (supports AJAX updates)
-  - `/battery.html` - Battery status display
-  - `/control.html` - Control interface (placeholder)
-  - `/stats` - API endpoint for sensor statistics
+  - `/` - Home page (current temp per sensor, via `/current_temps`)
+  - `/data.html` - Temperature/humidity charts (supports AJAX updates), statistics table, and the daily-trends chart
+  - `/battery.html` - Battery status display; shows an offline banner instead of erroring when no VE.Direct data has been received yet (`connected: false` from `db/helpers/battery.py:get_battery_data()`)
+  - `/settings.html` - Sensor rename UI
+  - `/control.html` / `/automate.html` - **Leftover from a previous "Hidden Hydroponics" project.** Titles, button labels, and JS all reference that domain (pH/EC/TDS, air/water/light relays) and call endpoints (`/airOn`, `/readpH`, etc.) that don't exist in `routes.py`. Still linked from the navbar. Not wired to any of this project's hardware — treat as dead code, not a spec for van control features.
+  - `/stats` - API endpoint for sensor statistics (high/low/mean/stddev/range) over either a sample-count window or an explicit date range
+  - `/daily_trends` - Binned temperature trends (high/low/mean) over an arbitrary `start_date`/`end_date`, grouped into `bin_days`-sized buckets (see `db/helpers/sensors.py:get_binned_stats`)
+  - `/current_temps` - Latest reading per sensor, with display name from `sensor_config`
+  - `/sensor_names` - GET returns `{sensor_id: name}`; POST `{sensor_id, name}` renames a sensor (persisted in the `sensor_config` table, UI on `/settings.html`)
 
 **Frontend:**
 - Templates in `vf/templates/`
@@ -50,11 +54,15 @@ SQLite database (`db/financials.db`) with helper modules:
 **Schema:**
 - `sensor_data` - DHT22 readings (sensor_id, temperature, humidity, timestamp)
 - `battery_data` - VE.Direct readings (label, value, timestamp)
+- `sensor_config` - User-editable display name per `sensor_id` (defaults to Internal/Living Room/Bedroom if no row exists)
 
 **Helper modules:**
 - `db/__init__.py` - Table creation via `TableStatements` class
-- `db/helpers/sensors.py` - Sensor data insertion/retrieval with statistics
+- `db/helpers/sensors.py` - Sensor data insertion/retrieval with statistics, including `get_binned_stats()` for the arbitrary-range/bin-size trends chart
 - `db/helpers/battery.py` - Battery data operations
+- `db/helpers/sensor_config.py` - Get/set sensor display names (`get_sensor_names()`, `set_sensor_name()`)
+
+**`config.py`** (repo root) holds shared constants: `NUM_SENSORS` (currently 3) and `PRIMARY_SENSOR` (the alignment reference used in `analysis/data_helper.py`). Import from here rather than hardcoding the sensor count elsewhere.
 
 ### Data Processing - `analysis/`
 - `data_helper.py` - `align_data()` function synchronizes timestamps across multiple sensors using binary search for nearest-neighbor matching. The `retrieve_aligned_data()` function fetches data for 3 hardcoded sensors and optionally converts to Fahrenheit.
@@ -105,14 +113,14 @@ all_tables_init(statements, DATABASE_DIRECTORY)
 ```bash
 pip install -r requirements.txt
 ```
+Note: `requirements.txt` currently only lists `adafruit-blinka`, `adafruit-circuitpython-dht`, and `rpi.gpio`. It's missing `flask` (all of `vf/`), `pyserial` (`vc/vedirect.py`), `smbus` (LCD + `vc/ds1307.py`), and `gpiozero` (`vc/rain.py`) — a fresh install from this file alone won't actually run either service yet.
 
 ## Important Notes
 
 ### Hardcoded values (tagged with `tag:HARDCODE`)
 - Sensor calibration offsets in `vc/dht.py` (lines 28-33)
-- Number of sensors (3) in multiple locations
-- Primary sensor index (2) in `analysis/data_helper.py`
 - Temperature bounds checking (-45°C to 85°C) in `vc/dht.py`
+- Number of sensors and the primary/alignment sensor index are centralized in `config.py` (`NUM_SENSORS`, `PRIMARY_SENSOR`) — use these instead of hardcoding `3`/`2` in new code
 
 ### Timestamp handling
 - Currently uses system time via `datetime.datetime.now()`
@@ -133,3 +141,12 @@ The `Vedirect` class implements a state machine parser for the VE.Direct text pr
 
 ### Control panel (incomplete)
 Button handling in `vc_driver.py` is partially implemented. The main loop in `main_vc.py` has button polling commented out (lines 34-37).
+
+### New tables require a `vc.service` restart
+`sensor_config` (and any future table added to `TableStatements`) is only created via `db_init()` in `main_vc.py`, which runs on process start. `main_vf.py` never calls it. After adding a table, restart `vc.service` before the corresponding `vf` route/feature will work — `main_vf.py` alone won't create it.
+
+### Known issues (not yet fixed)
+- `main_vf.py` runs Flask with `debug=True` bound to `0.0.0.0:80`, as root. The Werkzeug interactive debugger is a remote-code-execution risk if this is ever reachable beyond localhost — worth turning off `debug` (or at least binding to a non-public interface) before exposing this past a trusted home network.
+- `vc/gpio.py`: `PINS["relay"]` assigns the same GPIO pin to `relay_2`/`relay_3` (both 15) and `relay_6`/`relay_7` (both 24) — looks like a copy-paste typo, not an intentional shared pin.
+- `vc/gpio.py`: `fan_lift_dpdt` is assigned GPIO 1, which is normally reserved for the HAT ID EEPROM (ID_SD) on a Pi.
+- `vc/relay.py:all_relays_off()` calls `gpio.out(...)`, which doesn't exist (should be `gpio.gpio_out`) — will raise `AttributeError` if ever called.
