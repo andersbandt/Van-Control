@@ -1,7 +1,10 @@
 
 
 *.db
-db/financials.db
+# WAL mode's sidecar files churn on every write; committing them (as past
+# "latest db" / "db updates" commits did) creates spurious diffs and repo
+# drift between machines for no reason -- ignore the whole family.
+db/financials.db*
 
 
 __pycache__
