@@ -110,6 +110,10 @@ def retrieve_aligned_data(max_limit, scale='c'):
     # Align the data
     aligned_data = align_data(PRIMARY_SENSOR, data)
 
+    # get_data() orders newest-first (DESC) so the LIMIT grabs the most recent
+    # rows; reverse here so charts plot chronologically with latest on the right.
+    aligned_data.reverse()
+
     # ---- temperature scaling ----
     scale = scale.lower()
     if scale not in ("c", "f"):
@@ -157,6 +161,10 @@ def retrieve_aligned_data_by_date(start_date, end_date, scale='c'):
 
     # Align the data
     aligned_data = align_data(PRIMARY_SENSOR, data)
+
+    # get_data_by_date_range() orders newest-first (DESC); reverse here so
+    # charts plot chronologically with latest on the right.
+    aligned_data.reverse()
 
     # ---- temperature scaling ----
     scale = scale.lower()

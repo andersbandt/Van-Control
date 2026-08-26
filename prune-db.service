@@ -1,0 +1,8 @@
+[Unit]
+Description=Van-Control DB pruning (one-shot, triggered by prune-db.timer)
+
+[Service]
+Type=oneshot
+User=anders
+WorkingDirectory=/home/anders/Documents/GitHub/Van-Control/
+ExecStart=/usr/bin/python /home/anders/Documents/GitHub/Van-Control/prune_db.py --days 180

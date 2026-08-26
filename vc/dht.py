@@ -84,6 +84,11 @@ def check_dht(sensor_index):
 
 
 def update_all_dht():
+    # Collect valid readings across all sensors and write them in a single
+    # transaction at the end, instead of one connection/commit per sensor
+    # (see db/helpers/sensors.py:insert_readings()).
+    events_to_save = []
+
     for i in range(0, len(dht_device_list)):
         # set up SensorEvent
         sensor_event = check_dht(i)
@@ -101,8 +106,8 @@ def update_all_dht():
                         'temperature': sensor_event.temperature,
                         'humidity': sensor_event.humidity
                     }
-                    # handle logging to database
-                    dbh.sensors.insert_reading(sensor_event)
+                    # queue for batched write below
+                    events_to_save.append(sensor_event)
                 else:
                     # Outlier detected - skip and log warning
                     print(f"WARNING: Outlier detected for sensor #{i}: {reason}")
@@ -111,4 +116,6 @@ def update_all_dht():
                         print(f"  Previous: T={last_valid_readings[i]['temperature']:.1f}°C, H={last_valid_readings[i]['humidity']:.1f}%")
         else:
             print(f"ERROR: can't read from sensor #{i}")
+
+    dbh.sensors.insert_readings(events_to_save)
             

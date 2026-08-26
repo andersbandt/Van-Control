@@ -36,6 +36,16 @@ class TableStatements:
                         name VARCHAR(50) NOT NULL
                     );"""
 
+    # Every read/prune query filters by sensor_id and orders/filters by
+    # timestamp -- without these, each one is a full table scan, which only
+    # gets worse (and reads more off the SD card) as the tables grow.
+    # These are picked up automatically by all_tables_init() below since it
+    # runs every value that starts with "CREATE".
+    sensor_data_index = """CREATE INDEX IF NOT EXISTS idx_sensor_data_sensor_ts
+                            ON sensor_data(sensor_id, timestamp);"""
+    battery_data_index = """CREATE INDEX IF NOT EXISTS idx_battery_data_label_ts
+                            ON battery_data(label, timestamp);"""
+
 
 """
 Create all the tables. It uses a list instead

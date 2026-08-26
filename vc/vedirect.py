@@ -131,12 +131,7 @@ class Vedirect:
 
         if packet is not None:
             timestamp = datetime.datetime.now()
-            for label in packet:
-                dbh.battery.insert_reading(
-                    label,
-                    packet[label],
-                    timestamp
-                )
+            dbh.battery.insert_readings(packet, timestamp)
             print("... BMV-712 packet saved")
         else:
             print("ERROR: issue with ve.direct saving")

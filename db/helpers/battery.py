@@ -2,6 +2,7 @@
 
 # import needed modules
 import sqlite3
+import datetime
 
 # import database path
 from db import DATABASE_DIRECTORY
@@ -17,6 +18,27 @@ def insert_reading(label, value, timestamp) -> bool:
             (
                 label, value, timestamp
             ),
+        )
+    return True
+
+
+def insert_readings(readings: dict, timestamp) -> bool:
+    """
+    Insert every label/value pair from a single VE.Direct packet in one
+    transaction (one connection open + one commit + one fsync), instead of
+    one connection/commit per label (a BMV-712 frame has ~20-25 labels, and
+    this runs on every main-loop iteration around the clock -- that was
+    multiplying SD card writes ~20-25x versus this batched form).
+    """
+    with sqlite3.connect(DATABASE_DIRECTORY) as conn:
+        # WAL mode is already set persistently on the db file (see db/__init__.py),
+        # but `synchronous` is a per-connection setting -- NORMAL is the
+        # recommended, still-safe-from-corruption pairing with WAL, and fsyncs
+        # less often than the library default of FULL.
+        conn.execute("PRAGMA synchronous=NORMAL")
+        conn.executemany(
+            "INSERT INTO battery_data (label, value, timestamp) VALUES(?, ?, ?)",
+            [(label, value, timestamp) for label, value in readings.items()],
         )
     return True
 
@@ -56,6 +78,19 @@ def get_battery_data():
                 data['state_of_charge'] = f"{value:.2f}"  # State of charge in Ah
 
         return data
+
+
+##########################################################
+### data retention
+##########################################################
+def prune_old_data(cutoff: datetime.datetime) -> int:
+    """
+    Delete battery_data rows older than `cutoff`. Returns the number of rows
+    deleted. See sensors.py:prune_old_data() for why this doesn't VACUUM.
+    """
+    with sqlite3.connect(DATABASE_DIRECTORY) as conn:
+        cur = conn.execute("DELETE FROM battery_data WHERE timestamp < ?", (cutoff,))
+        return cur.rowcount
 
 
 

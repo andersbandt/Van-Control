@@ -15,19 +15,30 @@ from vc.classes.SensorEvent import SensorEvent
 ### data insertion
 ##########################################################
 def insert_reading(sensor_event: SensorEvent) -> bool:
+    return insert_readings([sensor_event])
+
+
+def insert_readings(sensor_events: list) -> bool:
+    """
+    Insert one or more SensorEvents in a single transaction (one connection
+    open + one commit + one fsync). update_all_dht() used to call
+    insert_reading() once per sensor per loop iteration -- up to 3 separate
+    connections/commits every ~15s, around the clock. Batching them cuts
+    that to 1.
+    """
+    if not sensor_events:
+        return True
+
     with sqlite3.connect(DATABASE_DIRECTORY) as conn:
-        cur = conn.cursor()
-        conn.set_trace_callback(print)
-        cur.execute(
+        # See db/helpers/battery.py:insert_readings() for why this is set here.
+        conn.execute("PRAGMA synchronous=NORMAL")
+        conn.executemany(
             "INSERT INTO sensor_data (sensor_id, temperature, humidity, timestamp) VALUES(?, ?, ?, ?)",
-            (
-                sensor_event.sensor_id,
-                sensor_event.temperature,
-                sensor_event.humidity,
-                sensor_event.timestamp
-            ),
+            [
+                (event.sensor_id, event.temperature, event.humidity, event.timestamp)
+                for event in sensor_events
+            ],
         )
-        conn.set_trace_callback(None)
     return True
 
 
@@ -275,5 +286,24 @@ def get_stats_by_date_range(sensor_id, start_datetime, end_datetime):
             stats['hum_stddev'] = stddev_result['hum_stddev']
 
         return stats
+
+
+##########################################################
+### data retention
+##########################################################
+def prune_old_data(cutoff: datetime.datetime) -> int:
+    """
+    Delete sensor_data rows older than `cutoff`. Returns the number of rows
+    deleted.
+
+    Note: this doesn't shrink financials.db on disk (SQLite reuses the freed
+    pages internally for future inserts rather than returning them to the
+    filesystem) -- that's intentional, since a full VACUUM to reclaim space
+    is itself a large write burst and temporarily needs ~2x the db size free.
+    Run one manually if you actually need the file smaller.
+    """
+    with sqlite3.connect(DATABASE_DIRECTORY) as conn:
+        cur = conn.execute("DELETE FROM sensor_data WHERE timestamp < ?", (cutoff,))
+        return cur.rowcount
 
 
