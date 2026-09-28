@@ -22,7 +22,11 @@
     <h2>Climate Control Zone</h2>
 
     <!-- SLIDER CONTROLLER -->
-    <label for="data-slider">Select Max Limit: <span id="slider-value">{{ max_limit }}</span> samples (~<span id="slider-duration">…</span>)</label>
+    <label for="data-slider">Select Max Limit:
+      <button type="button" class="limit-step" id="limit-minus" aria-label="Decrease by 500">−500</button>
+      <input type="number" id="slider-value" aria-label="Max limit (samples)" min="0" max="10000" step="500" value="{{ max_limit }}">
+      <button type="button" class="limit-step" id="limit-plus" aria-label="Increase by 500">+500</button>
+      samples (~<span id="slider-duration">…</span>)</label>
     <input type="range" id="data-slider" min="100" max="10000" value="{{ max_limit }}" step="10">
 
     <!-- DATE SELECTOR -->

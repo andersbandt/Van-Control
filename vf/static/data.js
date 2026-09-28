@@ -25,7 +25,50 @@ function updateSliderDuration() {
         sliderDuration.textContent = '…';
         return;
     }
-    sliderDuration.textContent = formatDuration(slider.value * sampleIntervalSeconds);
+    sliderDuration.textContent = formatDuration(maxLimit * sampleIntervalSeconds);
+}
+
+// ── Max limit slider ─────────────────────────────────────────────────────────
+
+// Slider moves in fine steps of 10; the number box's spinner arrows jump by
+// 500 for coarse changes, and any exact value can still be typed into it.
+const MAX_LIMIT_MIN = 100;
+const MAX_LIMIT_MAX = 10000;
+
+let maxLimit = 5000;
+
+function setMaxLimit(value, fromSlider = false) {
+    const parsed = parseInt(value, 10);
+    maxLimit = Math.min(MAX_LIMIT_MAX, Math.max(MAX_LIMIT_MIN, isNaN(parsed) ? maxLimit : parsed));
+    sliderValue.value = maxLimit;
+    // Don't write back into the slider while it's being dragged
+    if (!fromSlider) slider.value = maxLimit;
+    updateSliderDuration();
+}
+
+function loadSampleWindow() {
+    fetch(`/data.html?max_limit=${maxLimit}&scale=${temperatureScale}`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+        .then(response => response.json())
+        .then(data => {
+            chart1.data.labels = data.labels;
+            chart1.data.datasets[0].data = data.data1_1;
+            chart1.data.datasets[1].data = data.data1_2;
+            chart1.data.datasets[2].data = data.data1_3;
+            chart1.update();
+
+            chart2.data.labels = data.labels;
+            chart2.data.datasets[0].data = data.data2_1;
+            chart2.data.datasets[1].data = data.data2_2;
+            chart2.data.datasets[2].data = data.data2_3;
+            chart2.update();
+        })
+        .catch(err => console.error('Error fetching data:', err));
+
+    fetchStats(0, maxLimit);
+    fetchStats(1, maxLimit);
+    fetchStats(2, maxLimit);
 }
 
 // ── Sensor naming ────────────────────────────────────────────────────────────
@@ -63,70 +106,40 @@ function fetchSensorNames() {
 window.addEventListener('DOMContentLoaded', () => {
     fetchSensorNames();
 
-    sliderValue.textContent = slider.value;
-    const initialMaxLimit = slider.value || 5000;
-
-    // Populate charts asynchronously so the page shell loads immediately
-    fetch(`/data.html?max_limit=${initialMaxLimit}&scale=${temperatureScale}`, {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-        .then(r => r.json())
-        .then(data => {
-            chart1.data.labels = data.labels;
-            chart1.data.datasets[0].data = data.data1_1;
-            chart1.data.datasets[1].data = data.data1_2;
-            chart1.data.datasets[2].data = data.data1_3;
-            chart1.update();
-
-            chart2.data.labels = data.labels;
-            chart2.data.datasets[0].data = data.data2_1;
-            chart2.data.datasets[1].data = data.data2_2;
-            chart2.data.datasets[2].data = data.data2_3;
-            chart2.update();
-        })
-        .catch(err => console.error('Error fetching initial chart data:', err));
-
-    fetchStats(0, initialMaxLimit);
-    fetchStats(1, initialMaxLimit);
-    fetchStats(2, initialMaxLimit);
+    setMaxLimit(sliderValue.value);
+    loadSampleWindow();
 });
 
 
-// Update the value display when the slider changes
+// Slider drag: update the displayed value live, fetch once it's released
 slider.addEventListener('input', function () {
-    sliderValue.textContent = slider.value;
-    updateSliderDuration();
+    setMaxLimit(slider.value, true);
+});
+slider.addEventListener('change', loadSampleWindow);
+
+// Typed value: fires on Enter, blur, or the spinner arrows
+sliderValue.addEventListener('change', function () {
+    setMaxLimit(sliderValue.value);
+    loadSampleWindow();
 });
 
-// Fetch new data when the slider stops being dragged
-slider.addEventListener('change', function () {
-    const maxLimit = slider.value;
-    fetch(`/data.html?max_limit=${maxLimit}&scale=${temperatureScale}`, {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-        .then(response => response.json())
-        .then(data => {
-            // Assuming the server returns the new labels and data arrays
-            chart1.data.labels = data.labels;
-            chart1.data.datasets[0].data = data.data1_1;
-            chart1.data.datasets[1].data = data.data1_2;
-            chart1.data.datasets[2].data = data.data1_3;
-            chart1.update();
+// −500 / +500 buttons — stand-ins for the spinner arrows, which mobile browsers
+// don't show. Snap to multiples of 500 like the spinner does, and wait for a
+// pause in tapping before fetching so several quick taps cost one request.
+const LIMIT_STEP = 500;
+let limitStepTimer = null;
 
-            chart2.data.labels = data.labels;
-            chart2.data.datasets[0].data = data.data2_1;
-            chart2.data.datasets[1].data = data.data2_2;
-            chart2.data.datasets[2].data = data.data2_3;
-            chart2.update();
-        })
-        .catch(err => console.error('Error fetching data:', err));
+function stepMaxLimit(direction) {
+    const next = direction > 0
+        ? Math.floor(maxLimit / LIMIT_STEP) * LIMIT_STEP + LIMIT_STEP
+        : Math.ceil(maxLimit / LIMIT_STEP) * LIMIT_STEP - LIMIT_STEP;
+    setMaxLimit(next);
+    clearTimeout(limitStepTimer);
+    limitStepTimer = setTimeout(loadSampleWindow, 400);
+}
 
-
-    // Fetch and update statistics
-    fetchStats(2, maxLimit);
-    fetchStats(1, maxLimit);
-    fetchStats(0, maxLimit);
-});
+document.getElementById('limit-minus').addEventListener('click', () => stepMaxLimit(-1));
+document.getElementById('limit-plus').addEventListener('click', () => stepMaxLimit(1));
 
 
 
@@ -287,29 +300,7 @@ document.querySelectorAll('input[name="temp-scale"]').forEach(radio => {
             fetchStatsByDate(2, dateStr, dateStr);
         } else {
             // Otherwise, use slider value
-            const maxLimit = slider.value;
-            fetch(`/data.html?max_limit=${maxLimit}&scale=${temperatureScale}`, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    chart1.data.labels = data.labels;
-                    chart1.data.datasets[0].data = data.data1_1;
-                    chart1.data.datasets[1].data = data.data1_2;
-                    chart1.data.datasets[2].data = data.data1_3;
-                    chart1.update();
-
-                    chart2.data.labels = data.labels;
-                    chart2.data.datasets[0].data = data.data2_1;
-                    chart2.data.datasets[1].data = data.data2_2;
-                    chart2.data.datasets[2].data = data.data2_3;
-                    chart2.update();
-                })
-                .catch(err => console.error('Error fetching data:', err));
-
-            fetchStats(0, maxLimit);
-            fetchStats(1, maxLimit);
-            fetchStats(2, maxLimit);
+            loadSampleWindow();
         }
     });
 });

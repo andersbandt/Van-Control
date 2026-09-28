@@ -444,18 +444,6 @@ li:first-child a:after {
     font-size: 12px;
   }
 
-  /* Mobile-friendly controls */
-  #data-slider {
-    width: 90%;
-    margin: 10px auto;
-    display: block;
-  }
-
-  label[for="data-slider"] {
-    display: block;
-    text-align: center;
-    margin: 10px 0;
-  }
 
   #day-picker,
   #day-prev,
@@ -664,6 +652,90 @@ li:first-child a:after {
   .battery-stat-card { padding: 20px 16px; }
 }
 
+/* Max limit slider — applies at every screen size. The slider must sit on its
+   own line: if it's inline after the label, the duration text changing width
+   mid-drag shifts the track under the pointer and the value jumps. */
+#data-slider {
+  width: 90%;
+  max-width: 800px;
+  margin: 10px auto;
+  display: block;
+}
 
+label[for="data-slider"] {
+  display: block;
+  text-align: center;
+  margin: 10px 0;
+}
 
+/* 16px keeps iOS Safari from auto-zooming the page when the box is tapped */
+#slider-value {
+  width: 6em;
+  font-size: 16px;
+}
 
+.limit-step {
+  font-size: 16px;
+  padding: 4px 8px;
+}
+
+/* step="500" is only for the spinner arrows — typed values like 1234 are
+   still accepted, so don't flag them as invalid */
+#slider-value:invalid {
+  box-shadow: none;
+  outline: none;
+}
+
+/* Fixed width so the centred label doesn't jiggle as the duration changes */
+#slider-duration {
+  display: inline-block;
+  min-width: 5.5em;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Touch screens: bigger slider thumb/track and step buttons that are easy to
+   hit with a finger. Mouse/trackpad users keep the native look. */
+@media (pointer: coarse) {
+  #data-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 40px;
+    background: transparent;
+  }
+
+  #data-slider::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 4px;
+    background: #bbb;
+  }
+
+  #data-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 32px;
+    height: 32px;
+    margin-top: -12px; /* centre on the 8px track */
+    border: none;
+    border-radius: 50%;
+    background: #3e95cd;
+  }
+
+  #data-slider::-moz-range-track {
+    height: 8px;
+    border-radius: 4px;
+    background: #bbb;
+  }
+
+  #data-slider::-moz-range-thumb {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: #3e95cd;
+  }
+
+  .limit-step {
+    min-width: 44px;
+    min-height: 40px;
+  }
+}
