@@ -323,6 +323,18 @@ const trendsBinSelect    = document.getElementById('trends-bin');
     trendsStartPicker.value = formatDateISO(start);
 })();
 
+// Bar charts default to beginAtZero, which squashes the range bars into the top
+// of the chart -- fit the y-axis to the data instead, padded by 10% of the span
+// (at least 2 degrees) and rounded out to whole degrees.
+function trendsYBounds(lows, highs) {
+    const vals = lows.concat(highs).filter(Number.isFinite);
+    if (vals.length === 0) return { min: undefined, max: undefined };
+    const lo = Math.min(...vals);
+    const hi = Math.max(...vals);
+    const pad = Math.max((hi - lo) * 0.1, 2);
+    return { min: Math.floor(lo - pad), max: Math.ceil(hi + pad) };
+}
+
 function fetchTrends() {
     const sensorId  = trendsSensorSelect.value;
     const startDate = trendsStartPicker.value;
@@ -340,12 +352,15 @@ function fetchTrends() {
 
             const unit = temperatureScale === 'f' ? '°F' : '°C';
             const rangeData = labels.map((_, i) => [lows[i], highs[i]]);
+            const yBounds   = trendsYBounds(lows, highs);
 
             if (trendsChart) {
                 trendsChart.data.labels                  = labels;
                 trendsChart.data.datasets[0].data        = rangeData;
                 trendsChart.data.datasets[1].data        = means;
                 trendsChart.options.scales.y.title.text  = `Temperature (${unit})`;
+                trendsChart.options.scales.y.min         = yBounds.min;
+                trendsChart.options.scales.y.max         = yBounds.max;
                 trendsChart.update();
             } else {
                 trendsChart = new Chart(document.getElementById('trends-chart'), {
@@ -396,7 +411,11 @@ function fetchTrends() {
                         },
                         scales: {
                             x: { title: { display: true, text: 'Period Start' } },
-                            y: { title: { display: true, text: `Temperature (${unit})` } }
+                            y: {
+                                min: yBounds.min,
+                                max: yBounds.max,
+                                title: { display: true, text: `Temperature (${unit})` }
+                            }
                         }
                     }
                 });
