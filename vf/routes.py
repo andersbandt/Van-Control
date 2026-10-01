@@ -32,6 +32,12 @@ def index_return():
     return home()
 
 
+# browsers request /favicon.ico on their own (e.g. for JSON pages with no <link rel="icon">)
+@blueprint.route('/favicon.ico')
+def favicon():
+    return redirect('/static/favicon.svg')
+
+
 @blueprint.route('/automate.html')
 def automate():
     return render_template('automate.html', **locals())

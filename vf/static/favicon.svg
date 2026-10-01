@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- van body -->
+  <path d="M4 18 Q4 12 10 12 H42 Q47 12 50 16 L58 28 Q60 31 60 35 V46 Q60 49 57 49 H7 Q4 49 4 46 Z" fill="#4CAF50"/>
+  <!-- windows -->
+  <rect x="10" y="18" width="12" height="10" rx="2" fill="#FFFFE9"/>
+  <rect x="26" y="18" width="12" height="10" rx="2" fill="#FFFFE9"/>
+  <path d="M42 18 H46 Q48 18 49 20 L54 28 H42 Z" fill="#FFFFE9"/>
+  <!-- wheels -->
+  <circle cx="17" cy="49" r="7" fill="#3f3f3f"/>
+  <circle cx="17" cy="49" r="3" fill="#f1f1f1"/>
+  <circle cx="47" cy="49" r="7" fill="#3f3f3f"/>
+  <circle cx="47" cy="49" r="3" fill="#f1f1f1"/>
+</svg>
