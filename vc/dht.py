@@ -60,12 +60,13 @@ def check_dht(sensor_index):
         humidity = dht_device.humidity
 
         # add some calibration constant -- tag:HARDCODE
+        # offsets relative to sensor 2 (reference), recalibrated 2026-10-08 from ~24h co-located data
         if sensor_index == 0:
-            temperature_c = temperature_c + 1.34
-            humidity = humidity - 11.4490
+            temperature_c = temperature_c + 2.13
+            humidity = humidity - 10.51
         elif sensor_index == 1:
-            temperature_c = temperature_c - 0.5163
-            humidity = humidity - 3.0096
+            temperature_c = temperature_c + 0.71
+            humidity = humidity + 0.57
 
         # TODO: make this dynamic based on wifi connection
         # METHOD1: using systime which MAY BE INACCURATE if we lose wifi connection
