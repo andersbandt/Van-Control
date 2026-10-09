@@ -288,22 +288,3 @@ def get_stats_by_date_range(sensor_id, start_datetime, end_datetime):
         return stats
 
 
-##########################################################
-### data retention
-##########################################################
-def prune_old_data(cutoff: datetime.datetime) -> int:
-    """
-    Delete sensor_data rows older than `cutoff`. Returns the number of rows
-    deleted.
-
-    Note: this doesn't shrink financials.db on disk (SQLite reuses the freed
-    pages internally for future inserts rather than returning them to the
-    filesystem) -- that's intentional, since a full VACUUM to reclaim space
-    is itself a large write burst and temporarily needs ~2x the db size free.
-    Run one manually if you actually need the file smaller.
-    """
-    with sqlite3.connect(DATABASE_DIRECTORY) as conn:
-        cur = conn.execute("DELETE FROM sensor_data WHERE timestamp < ?", (cutoff,))
-        return cur.rowcount
-
-

@@ -2,7 +2,6 @@
 
 # import needed modules
 import sqlite3
-import datetime
 
 # import database path
 from db import DATABASE_DIRECTORY
@@ -78,19 +77,6 @@ def get_battery_data():
                 data['state_of_charge'] = f"{value:.2f}"  # State of charge in Ah
 
         return data
-
-
-##########################################################
-### data retention
-##########################################################
-def prune_old_data(cutoff: datetime.datetime) -> int:
-    """
-    Delete battery_data rows older than `cutoff`. Returns the number of rows
-    deleted. See sensors.py:prune_old_data() for why this doesn't VACUUM.
-    """
-    with sqlite3.connect(DATABASE_DIRECTORY) as conn:
-        cur = conn.execute("DELETE FROM battery_data WHERE timestamp < ?", (cutoff,))
-        return cur.rowcount
 
 
 

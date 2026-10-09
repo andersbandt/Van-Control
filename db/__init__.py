@@ -36,7 +36,7 @@ class TableStatements:
                         name VARCHAR(50) NOT NULL
                     );"""
 
-    # Every read/prune query filters by sensor_id and orders/filters by
+    # Every read query filters by sensor_id and orders/filters by
     # timestamp -- without these, each one is a full table scan, which only
     # gets worse (and reads more off the SD card) as the tables grow.
     # These are picked up automatically by all_tables_init() below since it
