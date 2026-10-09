@@ -40,20 +40,25 @@ def main():
                 
         # get battery statistics and update display
         battery_data = dbh.battery.get_battery_data()
-
-
-        #        dispc.display_bat_out(
-#            battery_data['state_of_charge'],
-#            battery_data['voltage'],
-#            battery_data['current'],
-        # )
-        # timestamp=battery_data['timestamp']
+        if battery_data['connected']:
+            lcd.display_bat_out(
+                battery_data['voltage'],
+                battery_data['current'],
+                battery_data['power'],
+                battery_data['state_of_charge'],  # actually CE (consumed Ah), see get_battery_data()
+            )
+        else:
+            lcd.display_bat_offline()
+        time.sleep(3)
 
 
         # get temperature data and update display
+        sensor_names = dbh.sensor_config.get_sensor_names()
         for i in range(NUM_SENSORS):
             data = dbh.sensors.get_data(i, 1)
-            lcd.display_temp_out(f"{i}", data[0][1], data[0][2], data[0][0])
+            if not data:
+                continue
+            lcd.display_temp_out(sensor_names[i], data[0][1], data[0][2], data[0][0])
             time.sleep(3)
                 
 
