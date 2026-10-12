@@ -121,6 +121,10 @@ def daily_trends():
             row['temp_low'] = round(row['temp_low'], 2) if row['temp_low'] is not None else None
             row['temp_mean'] = round(row['temp_mean'], 2) if row['temp_mean'] is not None else None
 
+        row['hum_high'] = round(row['hum_high'], 2) if row['hum_high'] is not None else None
+        row['hum_low'] = round(row['hum_low'], 2) if row['hum_low'] is not None else None
+        row['hum_mean'] = round(row['hum_mean'], 2) if row['hum_mean'] is not None else None
+
     return jsonify(rows)
 
 

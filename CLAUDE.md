@@ -39,7 +39,7 @@ Web interface for data visualization and control. Runs as `root` on port 80.
   - `/settings.html` - Sensor rename UI
   - `/control.html` / `/automate.html` - **Leftover from a previous "Hidden Hydroponics" project.** Titles, button labels, and JS all reference that domain (pH/EC/TDS, air/water/light relays) and call endpoints (`/airOn`, `/readpH`, etc.) that don't exist in `routes.py`. Still linked from the navbar. Not wired to any of this project's hardware — treat as dead code, not a spec for van control features.
   - `/stats` - API endpoint for sensor statistics (high/low/mean/stddev/range) over either a sample-count window or an explicit date range
-  - `/daily_trends` - Binned temperature trends (high/low/mean) over an arbitrary `start_date`/`end_date`, grouped into `bin_days`-sized buckets (see `db/helpers/sensors.py:get_binned_stats`)
+  - `/daily_trends` - Binned temperature and humidity trends (high/low/mean each; feeds both trends charts on `/data.html`) over an arbitrary `start_date`/`end_date`, grouped into `bin_days`-sized buckets (see `db/helpers/sensors.py:get_binned_stats`)
   - `/current_temps` - Latest reading per sensor, with display name from `sensor_config`
   - `/sensor_names` - GET returns `{sensor_id: name}`; POST `{sensor_id, name}` renames a sensor (persisted in the `sensor_config` table, UI on `/settings.html`)
 

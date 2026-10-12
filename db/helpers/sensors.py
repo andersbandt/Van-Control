@@ -199,11 +199,13 @@ def get_stats(sensor_id, limit):
 
 def get_binned_stats(sensor_id, start_datetime, end_datetime, bin_days):
     """
-    Get temperature stats (high, low, mean) for a sensor within a date range,
-    grouped into fixed-size bins of `bin_days` days anchored to start_datetime.
+    Get temperature and humidity stats (high, low, mean) for a sensor within a
+    date range, grouped into fixed-size bins of `bin_days` days anchored to
+    start_datetime.
 
     Returns:
-        list of dicts: [{bin_start, bin_end, temp_high, temp_low, temp_mean}, ...]
+        list of dicts: [{bin_start, bin_end, temp_high, temp_low, temp_mean,
+                         hum_high, hum_low, hum_mean}, ...]
     """
     query = """
     SELECT
@@ -212,7 +214,10 @@ def get_binned_stats(sensor_id, start_datetime, end_datetime, bin_days):
         MAX(timestamp) AS bin_end,
         MAX(temperature) AS temp_high,
         MIN(temperature) AS temp_low,
-        AVG(temperature) AS temp_mean
+        AVG(temperature) AS temp_mean,
+        MAX(humidity) AS hum_high,
+        MIN(humidity) AS hum_low,
+        AVG(humidity) AS hum_mean
     FROM sensor_data
     WHERE sensor_id = ?
       AND timestamp >= ?

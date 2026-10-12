@@ -308,6 +308,7 @@ document.querySelectorAll('input[name="temp-scale"]').forEach(radio => {
 // ── Daily Trends Chart ────────────────────────────────────────────────────────
 
 let trendsChart = null;
+let humTrendsChart = null;
 
 const trendsSensorSelect = document.getElementById('trends-sensor');
 const trendsStartPicker  = document.getElementById('trends-start');
@@ -325,14 +326,100 @@ const trendsBinSelect    = document.getElementById('trends-bin');
 
 // Bar charts default to beginAtZero, which squashes the range bars into the top
 // of the chart -- fit the y-axis to the data instead, padded by 10% of the span
-// (at least 2 degrees) and rounded out to whole degrees.
-function trendsYBounds(lows, highs) {
+// (at least 2 units) and rounded out to whole units. `limits` optionally clamps
+// the result (humidity can't leave 0-100%).
+function trendsYBounds(lows, highs, limits) {
     const vals = lows.concat(highs).filter(Number.isFinite);
     if (vals.length === 0) return { min: undefined, max: undefined };
     const lo = Math.min(...vals);
     const hi = Math.max(...vals);
     const pad = Math.max((hi - lo) * 0.1, 2);
-    return { min: Math.floor(lo - pad), max: Math.ceil(hi + pad) };
+    let min = Math.floor(lo - pad);
+    let max = Math.ceil(hi + pad);
+    if (limits) {
+        min = Math.max(min, limits.min);
+        max = Math.min(max, limits.max);
+    }
+    return { min: min, max: max };
+}
+
+// Create (or update, if `chart` already exists) a range-bar + mean-line trends
+// chart. Returns the chart so the caller can hold on to it.
+function renderTrendsChart(chart, canvasId, cfg) {
+    const rangeData = cfg.labels.map((_, i) => [cfg.lows[i], cfg.highs[i]]);
+    const yBounds   = trendsYBounds(cfg.lows, cfg.highs, cfg.limits);
+
+    if (chart) {
+        chart.trendsUnit                   = cfg.unit;
+        chart.data.labels                  = cfg.labels;
+        chart.data.datasets[0].data        = rangeData;
+        chart.data.datasets[1].data        = cfg.means;
+        chart.options.scales.y.title.text  = cfg.yTitle;
+        chart.options.scales.y.min         = yBounds.min;
+        chart.options.scales.y.max         = yBounds.max;
+        chart.update();
+        return chart;
+    }
+
+    chart = new Chart(document.getElementById(canvasId), {
+        type: 'bar',
+        data: {
+            labels: cfg.labels,
+            datasets: [
+                {
+                    label: 'Period Range (Low – High)',
+                    data: rangeData,
+                    backgroundColor: cfg.rangeFill,
+                    borderColor: cfg.rangeBorder,
+                    borderWidth: 1,
+                    borderSkipped: false,
+                },
+                {
+                    type: 'line',
+                    label: 'Period Mean',
+                    data: cfg.means,
+                    borderColor: '#e8762c',
+                    backgroundColor: '#e8762c',
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: false,
+                    tension: 0.3,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: cfg.title
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            const unit = ctx.chart.trendsUnit;
+                            if (ctx.datasetIndex === 0) {
+                                const [lo, hi] = ctx.raw;
+                                return `Range: ${lo}${unit} – ${hi}${unit}`;
+                            }
+                            return `Mean: ${ctx.raw}${unit}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { title: { display: true, text: 'Period Start' } },
+                y: {
+                    min: yBounds.min,
+                    max: yBounds.max,
+                    title: { display: true, text: cfg.yTitle }
+                }
+            }
+        }
+    });
+    chart.trendsUnit = cfg.unit;
+    return chart;
 }
 
 function fetchTrends() {
@@ -346,80 +433,32 @@ function fetchTrends() {
         .then(r => r.json())
         .then(rows => {
             const labels = rows.map(r => (r.bin_start || '').slice(0, 10));
-            const highs  = rows.map(r => r.temp_high);
-            const lows   = rows.map(r => r.temp_low);
-            const means  = rows.map(r => r.temp_mean);
-
             const unit = temperatureScale === 'f' ? '°F' : '°C';
-            const rangeData = labels.map((_, i) => [lows[i], highs[i]]);
-            const yBounds   = trendsYBounds(lows, highs);
 
-            if (trendsChart) {
-                trendsChart.data.labels                  = labels;
-                trendsChart.data.datasets[0].data        = rangeData;
-                trendsChart.data.datasets[1].data        = means;
-                trendsChart.options.scales.y.title.text  = `Temperature (${unit})`;
-                trendsChart.options.scales.y.min         = yBounds.min;
-                trendsChart.options.scales.y.max         = yBounds.max;
-                trendsChart.update();
-            } else {
-                trendsChart = new Chart(document.getElementById('trends-chart'), {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: 'Period Range (Low – High)',
-                                data: rangeData,
-                                backgroundColor: 'rgba(62, 149, 205, 0.35)',
-                                borderColor: '#3e95cd',
-                                borderWidth: 1,
-                                borderSkipped: false,
-                            },
-                            {
-                                type: 'line',
-                                label: 'Period Mean',
-                                data: means,
-                                borderColor: '#e8762c',
-                                backgroundColor: '#e8762c',
-                                pointRadius: 4,
-                                pointHoverRadius: 6,
-                                fill: false,
-                                tension: 0.3,
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Temperature Trends'
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(ctx) {
-                                        if (ctx.datasetIndex === 0) {
-                                            const [lo, hi] = ctx.raw;
-                                            return `Range: ${lo}${unit} – ${hi}${unit}`;
-                                        }
-                                        return `Mean: ${ctx.raw}${unit}`;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: { title: { display: true, text: 'Period Start' } },
-                            y: {
-                                min: yBounds.min,
-                                max: yBounds.max,
-                                title: { display: true, text: `Temperature (${unit})` }
-                            }
-                        }
-                    }
-                });
-            }
+            trendsChart = renderTrendsChart(trendsChart, 'trends-chart', {
+                labels: labels,
+                highs:  rows.map(r => r.temp_high),
+                lows:   rows.map(r => r.temp_low),
+                means:  rows.map(r => r.temp_mean),
+                unit:   unit,
+                title:  'Temperature Trends',
+                yTitle: `Temperature (${unit})`,
+                rangeFill:   'rgba(62, 149, 205, 0.35)',
+                rangeBorder: '#3e95cd',
+            });
+
+            humTrendsChart = renderTrendsChart(humTrendsChart, 'hum-trends-chart', {
+                labels: labels,
+                highs:  rows.map(r => r.hum_high),
+                lows:   rows.map(r => r.hum_low),
+                means:  rows.map(r => r.hum_mean),
+                unit:   '%',
+                title:  'Humidity Trends',
+                yTitle: 'Humidity (%)',
+                limits: { min: 0, max: 100 },
+                rangeFill:   'rgba(56, 30, 207, 0.3)',
+                rangeBorder: '#381ecf',
+            });
         })
         .catch(err => console.error('Error fetching daily trends:', err));
 }
